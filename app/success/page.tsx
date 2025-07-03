@@ -2,12 +2,22 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SuccessContent />
+    </Suspense>
+  );
+}
+
+function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isManual = searchParams.get("manual") === "1";
   const email = searchParams.get("email");
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-dark-900 text-center px-4">
       <CheckCircle className="w-20 h-20 text-green-400 mb-6" />
