@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { Minus, Plus, X } from "lucide-react"
 import { useCart } from "@/context/cart-context"
 import type { CartItem as CartItemType } from "@/types/cart"
@@ -9,9 +10,10 @@ import { useState, useEffect } from "react"
 interface CartItemProps {
   item: CartItemType
   printifyProducts?: any[]
+  closeCart?: () => void
 }
 
-export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
+export function CartItem({ item, printifyProducts = [], closeCart }: CartItemProps) {
   const { removeItem, updateQuantity } = useCart()
   const [imageError, setImageError] = useState(false)
 
@@ -73,13 +75,13 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
 
   return (
     <div className="flex items-center py-4 border-b border-gray-700">
-      <div className="relative h-16 w-16 rounded overflow-hidden flex-shrink-0 bg-dark-700">
+      <Link href={`/product/${item.id}`} onClick={closeCart} className="relative h-16 w-16 rounded overflow-hidden flex-shrink-0 bg-dark-700 group focus:outline-none focus:ring-2 focus:ring-yellow-500">
         {!imageError ? (
           <Image 
             src={info.image} 
             alt={info.name} 
             fill 
-            className="object-cover"
+            className="object-cover group-hover:opacity-80 transition-opacity"
             onError={handleImageError}
             sizes="64px"
             priority
@@ -89,9 +91,11 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
             <span className="text-xs">No image</span>
           </div>
         )}
-      </div>
+      </Link>
       <div className="ml-4 flex-grow">
-        <h4 className="text-sm font-medium text-gray-100">{info.name}</h4>
+        <Link href={`/product/${item.id}`} onClick={closeCart} className="text-sm font-medium text-yellow-500 hover:text-yellow-600 focus:outline-none focus:underline">
+          {info.name}
+        </Link>
         <p className="text-sm text-gray-400">${info.price.toFixed(2)}</p>
         {info.color && <p className="text-xs text-gray-400">Color: {info.color}</p>}
         {info.size && <p className="text-xs text-gray-400">Size: {info.size}</p>}
@@ -106,7 +110,7 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
         </button>
       </div>
       <button
-        onClick={() => removeItem(item.id)}
+        onClick={() => removeItem(item.id, item.size, item.color)}
         className="ml-4 p-1 rounded-full bg-dark-700 hover:bg-dark-600 transition-colors"
       >
         <X className="h-4 w-4 text-gray-300" />

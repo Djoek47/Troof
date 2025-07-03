@@ -15,7 +15,7 @@ const EMPTY_CART: CartState = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { id }: { id: number } = await req.json();
+    const { id, size, color }: { id: number, size?: string, color?: string } = await req.json();
     const walletId = req.nextUrl.searchParams.get('walletId');
 
     // ** Require walletId **
@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Remove item from the cart
-    cart.items = cart.items.filter((item) => item.id !== id);
+    // Remove only the specific variant from the cart
+    cart.items = cart.items.filter((item) => !(item.id === id && item.size === size && item.color === color));
 
     // Upload updated cart
     await uploadFile(

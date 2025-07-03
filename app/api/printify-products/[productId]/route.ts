@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest, context: { params: { productId: string } }) {
-  const { productId } = context.params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
+  const { productId } = await params;
   const shopId = process.env.PRINTIFY_SHOP_ID;
   const apiToken = process.env.PRINTIFY_API_TOKEN;
 

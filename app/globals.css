@@ -101,3 +101,16 @@ video {
   top: 0;
   left: 0;
 }
+
+/* Fade-in animation for step transitions */
+.animate-fade-in {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeInPop 0.3s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@keyframes fadeInPop {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
