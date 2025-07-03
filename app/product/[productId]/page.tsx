@@ -6,6 +6,8 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
 import { CartWrapper } from "@/components/cart-wrapper"
+import { ProductSplashScreen } from "@/components/splash-screen"
+import { CheckCircle, ShoppingCart } from "lucide-react"
 
 export default function ProductDetailPage() {
   const { productId } = useParams() as { productId: string }
@@ -19,6 +21,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState<string>("")
   const [mappedId, setMappedId] = useState<number | null>(null)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -50,9 +53,9 @@ export default function ProductDetailPage() {
     if (productId) fetchProduct()
   }, [productId])
 
-  if (loading) return <div className="text-center text-gray-300 py-20">Loading...</div>
+  if (loading) return <ProductSplashScreen />
+  if (loading || !product) return null
   if (error) return <div className="text-center text-red-500 py-20">{error}</div>
-  if (!product) return null
 
   // Robust field extraction with fallbacks
   const title = product.title || product.name || "Untitled Product"
@@ -72,6 +75,8 @@ export default function ProductDetailPage() {
       size: selectedSize,
       color: selectedColor,
     })
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 770)
   }
 
   return (
@@ -107,18 +112,18 @@ export default function ProductDetailPage() {
             </div>
           </div>
           <div className="flex-1 flex flex-col justify-center">
-            <h1 className="text-3xl font-bold text-gray-100 mb-2">{title}</h1>
-            <p className="text-xl text-yellow-400 font-semibold mb-4">${price.toFixed(2)}</p>
-            <div className="mb-4 text-gray-300 text-base" dangerouslySetInnerHTML={{ __html: description }} />
+            <h1 className="text-xl font-bold text-yellow-500 mb-1 font-sans">{title}</h1>
+            <p className="text-base text-gray-100 mb-2 font-sans">${price.toFixed(2)}</p>
+            <div className="mb-4 text-sm text-gray-400 font-sans" dangerouslySetInnerHTML={{ __html: description }} />
             {/* Color Selector */}
             {colorOption && colorOption.values?.length > 0 && (
               <div className="mb-4">
-                <div className="text-sm font-semibold mb-2">Colors</div>
+                <div className="text-sm font-semibold text-gray-400 mb-2 font-sans">Colors</div>
                 <div className="flex flex-wrap gap-2">
                   {colorOption.values.map((val: any) => (
                     <button
                       key={val.id}
-                      className={`px-4 py-2 rounded font-medium border transition-colors ${selectedColor === val.title ? "bg-yellow-500 text-dark-900 border-yellow-500" : "bg-dark-900 text-gray-100 border-gray-700 hover:bg-yellow-600 hover:text-dark-900"}`}
+                      className={`px-4 py-2 rounded font-medium text-base font-sans border transition-colors ${selectedColor === val.title ? "bg-yellow-500 text-dark-900 border-yellow-500" : "bg-dark-900 text-gray-100 border-gray-700 hover:bg-yellow-600 hover:text-dark-900"}`}
                       onClick={() => setSelectedColor(val.title)}
                       type="button"
                     >
@@ -131,12 +136,12 @@ export default function ProductDetailPage() {
             {/* Size Selector */}
             {sizeOption && sizeOption.values?.length > 0 && (
               <div className="mb-4">
-                <div className="text-sm font-semibold mb-2">Sizes</div>
+                <div className="text-sm font-semibold text-gray-400 mb-2 font-sans">Sizes</div>
                 <div className="flex flex-wrap gap-2">
                   {sizeOption.values.map((val: any) => (
                     <button
                       key={val.id}
-                      className={`px-4 py-2 rounded font-medium border transition-colors ${selectedSize === val.title ? "bg-yellow-500 text-dark-900 border-yellow-500" : "bg-dark-900 text-gray-100 border-gray-700 hover:bg-yellow-600 hover:text-dark-900"}`}
+                      className={`px-4 py-2 rounded font-medium text-base font-sans border transition-colors ${selectedSize === val.title ? "bg-yellow-500 text-dark-900 border-yellow-500" : "bg-dark-900 text-gray-100 border-gray-700 hover:bg-yellow-600 hover:text-dark-900"}`}
                       onClick={() => setSelectedSize(val.title)}
                       type="button"
                     >
@@ -162,11 +167,16 @@ export default function ProductDetailPage() {
               >+</button>
             </div>
             <Button
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-dark-900 text-lg font-bold py-3 font-sans"
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-dark-900 text-base font-bold font-sans py-3 flex items-center justify-center"
               onClick={handleAddToCart}
-              disabled={(!selectedColor && colorOption) || (!selectedSize && sizeOption)}
+              disabled={(!selectedColor && colorOption) || (!selectedSize && sizeOption) || showSuccess}
             >
-              Add to Cart - ${price.toFixed(2)}
+              {showSuccess ? (
+                <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
+              ) : (
+                <ShoppingCart className="w-4 h-4 mr-2" />
+              )}
+              {showSuccess ? 'Added!' : `Add to Cart - $${price.toFixed(2)}`}
             </Button>
           </div>
         </div>
