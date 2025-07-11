@@ -35,7 +35,7 @@ export function CartIcon() {
       {showSuccess ? (
         <CheckCircle className="w-6 h-6 text-black" />
       ) : (
-        <ShoppingCart className="w-6 h-6 text-dark-900" />
+      <ShoppingCart className="w-6 h-6 text-dark-900" />
       )}
       {itemCount > 0 && (
         <span className="absolute -top-1 -right-1 bg-dark-900 text-yellow-500 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center border border-yellow-500">

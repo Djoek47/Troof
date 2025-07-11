@@ -105,7 +105,7 @@ export function CartDrawer() {
                 <span className="text-lg font-bold text-green-500 animate-fade-in">Added to Cart!</span>
               </>
             ) : (
-              <h2 className="text-lg font-medium text-gray-100">Your Cart</h2>
+          <h2 className="text-lg font-medium text-gray-100">Your Cart</h2>
             )}
           </div>
           <button

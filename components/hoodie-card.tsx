@@ -116,22 +116,22 @@ export function HoodieCard({
   return (
     <div className="bg-dark-800 rounded-lg overflow-hidden group">
       <Link href={`/product/${productPageId}`} className="block">
-        <div
+      <div
           className="relative aspect-square cursor-pointer"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <Image
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <Image
             src={displayImage}
-            alt={name}
-            fill
-            className="object-cover transition-opacity duration-300"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          />
-          <div className="absolute top-2 right-2">
-            <Badge className="bg-yellow-500 text-dark-900 hover:bg-yellow-600">Metaverse Item</Badge>
-          </div>
+          alt={name}
+          fill
+          className="object-cover transition-opacity duration-300"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+        />
+        <div className="absolute top-2 right-2">
+          <Badge className="bg-yellow-500 text-dark-900 hover:bg-yellow-600">Metaverse Item</Badge>
         </div>
+      </div>
       </Link>
       <div className="p-4">
         <Link href={`/product/${productPageId}`} className="block">
@@ -213,8 +213,8 @@ export function HoodieCard({
         {step === 'postAdd' && (
           <div className="flex flex-col gap-2 mt-2 animate-fade-in">
             <div className="text-xs text-gray-400 text-center mb-2">Want to add another with a different option?</div>
-            <div className="flex gap-2">
-              <Button
+        <div className="flex gap-2">
+          <Button
                 className="flex-1 border-2 border-green-500 text-green-500 font-bold bg-transparent hover:bg-green-500 hover:text-dark-900 transition-colors"
                 onClick={() => setStep('color')}
                 type="button"
@@ -227,8 +227,8 @@ export function HoodieCard({
                 type="button"
               >
                 Change Size
-              </Button>
-            </div>
+          </Button>
+        </div>
           </div>
         )}
       </div>

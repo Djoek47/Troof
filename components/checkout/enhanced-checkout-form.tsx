@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CreditCard, Clock } from "lucide-react"
 import StripePaymentForm from "@/components/checkout/stripe-payment-form"
 import { getPrintifyVariantId } from "@/lib/printify"
+import { getPrintifyProductId } from "@/data/products";
 
 interface PaymentMethod {
   id: string
@@ -97,12 +98,14 @@ export const EnhancedCheckoutForm = () => {
   useEffect(() => {
     const fetchPrintifyProducts = async () => {
       try {
+        // Fetch raw Printify products with real IDs for mapping
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-        const res = await fetch(`${baseUrl}/api/printify-products`)
+        const res = await fetch(`${baseUrl}/api/printify-products/raw`)
         if (!res.ok) throw new Error("Failed to fetch Printify products")
         const data = await res.json()
         setPrintifyProducts(data)
       } catch (e) {
+        console.error("Failed to fetch Printify products:", e)
         setPrintifyProducts([])
       }
     }
@@ -124,10 +127,16 @@ export const EnhancedCheckoutForm = () => {
   // Calculate total using real Printify prices
   const calculateTotal = () => {
     return state.items.reduce((total, item) => {
-      const product = printifyProducts[item.id - 1];
-      if (!product) return total;
+      // Use stable mapping: get the real Printify product ID from the mock ID
+      const printifyProductId = getPrintifyProductId(item.id);
+      if (!printifyProductId) return total + (item.price * item.quantity);
+      
+      // Find the actual Printify product by its real ID
+      const product = printifyProducts.find(p => p.id.toString() === printifyProductId);
+      if (!product) return total + (item.price * item.quantity);
+      
       const variant = product.variants.find((v: any) => v.is_enabled) || product.variants[0];
-      const price = variant.price || item.price;
+      const price = (variant.price || item.price) / 100; // Convert cents to dollars
       return total + price * item.quantity;
     }, 0);
   };
@@ -155,11 +164,20 @@ export const EnhancedCheckoutForm = () => {
 
   // Helper: Map cart item to Printify product/variant
   function mapCartItemToPrintify(item: any) {
-    const product = printifyProducts[item.id - 1];
-    if (!product) {
-      console.error("No Printify product found for cart item", item);
+    // Use stable mapping: get the real Printify product ID from the mock ID
+    const printifyProductId = getPrintifyProductId(item.id);
+    if (!printifyProductId) {
+      console.error("No Printify product ID mapped for cart item", item);
       return null;
     }
+    
+    // Find the actual Printify product by its real ID
+    const product = printifyProducts.find(p => p.id.toString() === printifyProductId);
+    if (!product) {
+      console.error("Printify product not found for ID", printifyProductId);
+      return null;
+    }
+    
     // Use robust mapping to get the correct variantId
     const variantId = getPrintifyVariantId(product, item.color, item.size);
     const variant = product.variants.find((v: any) => v.id === variantId) || product.variants[0];
