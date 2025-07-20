@@ -55,7 +55,7 @@ export default function ClientLayoutContent({ children }: { children: ReactNode 
         {children}
         <footer className="w-full py-6 px-4 bg-dark-600 text-gray-400 border-t border-yellow-500/20">
           <div className="container mx-auto text-center">
-            <p className="mb-4">&copy; 2023 Faberland. All rights reserved.</p>
+            <p className="mb-4">&copy; 2025 Faberland. All rights reserved.</p>
             <div className="flex items-center justify-center">
               <span className="text-xs text-gray-500 mr-2">Powered by</span>
               <Link

@@ -256,33 +256,36 @@ export function HoodieCard({
         )}
         {/* Change Color/Size after adding to cart or when both options are selected */}
         {selectedColorId && selectedSizeId && (
-          <div className="flex gap-2 mt-4">
-            {colorOption && (
-              <Button
-                className="flex-1 border-2 border-green-500 text-green-500 font-bold bg-transparent hover:bg-green-500 hover:text-white transition-colors py-3 text-sm"
-                style={{ boxShadow: 'none' }}
-                onClick={() => { 
-                  setSelectedColorId(null); 
-                  setSelectedSizeId(null); 
-                  setAddedToCart(false);
-                  setColorSelectOpen(true); // Show color selection directly
-                }}
-                variant="outline"
-              >
-                Change Color
-              </Button>
-            )}
-            {sizeOption && (
-              <Button
-                className="flex-1 border-2 border-blue-500 text-blue-500 font-bold bg-transparent hover:bg-blue-500 hover:text-white transition-colors py-3 text-sm"
-                style={{ boxShadow: 'none' }}
-                onClick={() => { setSelectedSizeId(null); setAddedToCart(false); }}
-                variant="outline"
-              >
-                Change Size
-              </Button>
-            )}
-          </div>
+          <>
+            <div className="text-xs text-gray-400 text-center mt-4 mb-2">Want to add another with a different option?</div>
+            <div className="flex gap-2">
+              {colorOption && (
+                <Button
+                  className="flex-1 border-2 border-green-500 text-green-500 font-bold bg-transparent hover:bg-green-500 hover:text-white transition-colors py-3 text-sm"
+                  style={{ boxShadow: 'none' }}
+                  onClick={() => { 
+                    setSelectedColorId(null); 
+                    setSelectedSizeId(null); 
+                    setAddedToCart(false);
+                    setColorSelectOpen(true); // Show color selection directly
+                  }}
+                  variant="outline"
+                >
+                  Change Color
+                </Button>
+              )}
+              {sizeOption && (
+                <Button
+                  className="flex-1 border-2 border-blue-500 text-blue-500 font-bold bg-transparent hover:bg-blue-500 hover:text-white transition-colors py-3 text-sm"
+                  style={{ boxShadow: 'none' }}
+                  onClick={() => { setSelectedSizeId(null); setAddedToCart(false); }}
+                  variant="outline"
+                >
+                  Change Size
+                </Button>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

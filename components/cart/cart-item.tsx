@@ -64,7 +64,7 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
     if (item.quantity > 1) {
       updateQuantity(item.id, item.quantity - 1)
     } else {
-      removeItem(item.id)
+      removeItem(item.id, item.variantId, item.size, item.color)
     }
   }
 
@@ -109,7 +109,7 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
         </button>
       </div>
       <button
-        onClick={() => removeItem(item.id)}
+        onClick={() => removeItem(item.id, item.variantId, item.size, item.color)}
         className="ml-4 p-1 rounded-full bg-dark-700 hover:bg-dark-600 transition-colors"
       >
         <X className="h-4 w-4 text-gray-300" />

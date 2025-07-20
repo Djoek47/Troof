@@ -173,32 +173,19 @@ export default function Home() {
                 </Link>
               </div>
               <div className="md:w-1/2 bg-dark-700 p-6 rounded-lg border border-yellow-500/20">
-                <div className="aspect-video relative overflow-hidden rounded-md">
-                  <div className="absolute inset-0 flex items-center justify-center bg-dark-600">
-                    <div className="text-yellow-500 text-6xl font-bold opacity-20">METASTORE</div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-transparent"></div>
-                  </div>
+                <div className="aspect-video relative overflow-hidden rounded-md flex items-center justify-center">
+                  <Image
+                    src="/gpt.PNG"
+                    alt="Metastore GPT"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
                 </div>
               </div>
             </div>
           </div>
         </section>
-
-        {/* Visser Studios Footer */}
-        <div className="w-full py-2 bg-dark-900 border-t border-dark-700">
-          <div className="container mx-auto px-4 flex items-center justify-center">
-            <span className="text-xs text-gray-500 mr-2">Powered by</span>
-            <Link
-              href="https://faberland.vercel.app/"
-              className="flex items-center hover:opacity-80 transition-opacity"
-            >
-              <div className="relative w-6 h-6">
-                <Image src="/v1-logo.png" alt="Visser Studios" fill className="object-contain" />
-              </div>
-              <span className="text-xs text-gray-500 ml-1">Visser Studios</span>
-            </Link>
-          </div>
-        </div>
       </main>
     </CartWrapper>
   )
