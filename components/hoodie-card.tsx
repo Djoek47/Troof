@@ -1,12 +1,11 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useCart } from "@/context/cart-context"
-import { ShoppingCart, CheckCircle } from "lucide-react"
-import Link from "next/link"
+import { ShoppingCart } from "lucide-react"
 
 // Printify product types
 interface PrintifyProductCardProps {
@@ -47,52 +46,63 @@ export function HoodieCard({
   description,
 }: PrintifyProductCardProps) {
   const { addItem } = useCart()
-  // Store selected option IDs for <select> value, and labels for display
-  const [selectedOptionIds, setSelectedOptionIds] = useState<{ [optionName: string]: string }>({})
-  const [selectedOptionLabels, setSelectedOptionLabels] = useState<{ [optionName: string]: string }>({})
-  const [isHovered, setIsHovered] = useState(false)
-  // Step state: 'idle' | 'color' | 'size' | 'done' | 'postAdd'
-  const [step, setStep] = useState<'idle' | 'color' | 'size' | 'done' | 'postAdd'>('idle')
-  const [showSuccess, setShowSuccess] = useState(false)
+  // State for step-by-step selection
+  const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
+  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
+  const [addedToCart, setAddedToCart] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [colorSelectOpen, setColorSelectOpen] = useState(false);
 
-  // Debug: log the options array to see the actual option names
-  console.log('Printify product options:', options)
-
-  // Find the variant that matches the selected options
-  const selectedVariant = variants.find((variant) => {
-    // If there are no options, just return the first enabled variant
-    if (!options.length) return variant.is_enabled
-    // For each option, check if the selected value matches a variant id
-    return Object.values(selectedOptionIds).every((val) =>
-      images.some((img) => img.variant_ids.includes(variant.id) && img.variant_ids.includes(Number(val)))
-    ) && variant.is_enabled
-  }) || variants[0]
-
-  const handleOptionChange = (optionName: string, value: string) => {
-    // Find the label/title for the selected value
-    const option = options.find((opt) => opt.name === optionName)
-    const label = option?.values.find((valObj) => String(valObj.id) === value)?.title || value
-    setSelectedOptionIds((prev) => ({ ...prev, [optionName]: value }))
-    setSelectedOptionLabels((prev) => ({ ...prev, [optionName]: label }))
-    if (optionName === (colorOption?.name || '')) {
-      setStep('size')
-    }
-    if (optionName === (sizeOption?.name || '')) {
-      setStep('done')
-    }
-  }
-
-  // Dynamically find the option keys for size and color
-  const sizeOption = options.find(opt => opt.type === 'size');
+  // Find color and size options
   const colorOption = options.find(opt => opt.type === 'color');
-  const sizeId = sizeOption ? selectedOptionIds[sizeOption.name] : undefined;
-  const colorId = colorOption ? selectedOptionIds[colorOption.name] : undefined;
-  const sizeLabel = sizeOption?.values.find(val => String(val.id) === sizeId)?.title;
-  const colorLabel = colorOption?.values.find(val => String(val.id) === colorId)?.title;
-  // Only enable Add to Cart if all required options are selected
-  const allOptionsSelected = (!sizeOption || !!sizeId) && (!colorOption || !!colorId);
+  const sizeOption = options.find(opt => opt.type === 'size');
+  
+  // Use all available colors from the API (already filtered to enabled variants)
+  const colorLabel = colorOption?.values.find(val => String(val.id) === selectedColorId)?.title;
+  const sizeLabel = sizeOption?.values.find(val => String(val.id) === selectedSizeId)?.title;
 
-  // IMPORTANT: At checkout, transform this id back to the correct Printify product/variant id!
+  // Find the variant that matches selected color and size
+  const selectedVariant = variants.find((variant) => {
+    if (!colorOption && !sizeOption) return variant.is_enabled;
+    let matches = true;
+    // Only check variant.options if present (PrintifyVariant.options is optional)
+    if (colorOption && selectedColorId) {
+      if (Array.isArray((variant as any).options)) {
+        matches = matches && (variant as any).options.some((o: any) => o.name && o.name.toLowerCase().includes('color') && o.value == colorLabel);
+      } else {
+        matches = matches && colorLabel === undefined;
+      }
+    }
+    if (sizeOption && selectedSizeId) {
+      if (Array.isArray((variant as any).options)) {
+        matches = matches && (variant as any).options.some((o: any) => o.name && o.name.toLowerCase().includes('size') && o.value == sizeLabel);
+      } else {
+        matches = matches && sizeLabel === undefined;
+      }
+    }
+    return matches && variant.is_enabled;
+  }) || variants[0];
+
+  // Get the image for the selected variant, fallback to default
+  const displayImage = images.find((img) =>
+    selectedVariant && img.variant_ids.includes(selectedVariant.id)
+  )?.src || image;
+
+  // Step logic
+  const colorStepActive = !selectedColorId;
+  const sizeStepActive = !!selectedColorId && !selectedSizeId;
+  const canAddToCart = !!selectedColorId && !!selectedSizeId;
+
+  const handleColorSelect = (colorId: string) => {
+    setSelectedColorId(colorId);
+    setSelectedSizeId(null); // Reset size when color changes
+    setAddedToCart(false);
+    setColorSelectOpen(false); // Hide color options after selection
+  };
+  const handleSizeSelect = (sizeId: string) => {
+    setSelectedSizeId(sizeId);
+    setAddedToCart(false);
+  };
   const handleAddToCart = () => {
     addItem({
       id: Number(id),
@@ -100,29 +110,27 @@ export function HoodieCard({
       size: sizeLabel,
       color: colorLabel,
     });
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 770);
-    setStep('postAdd');
-  }
+    setAddedToCart(true);
+  };
 
-  // Get the image for the selected variant, fallback to default
-  const displayImage = images.find((img) =>
-    selectedVariant && img.variant_ids.includes(selectedVariant.id)
-  )?.src || image
-
-  // Get the real Printify product id if available (for linking)
-  const productPageId = typeof id === 'string' ? id : String(id)
+  // Add a timer to reset 'addedToCart' after showing success
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (addedToCart) {
+      timer = setTimeout(() => setAddedToCart(false), 1500);
+    }
+    return () => clearTimeout(timer);
+  }, [addedToCart]);
 
   return (
     <div className="bg-dark-800 rounded-lg overflow-hidden group">
-      <Link href={`/product/${productPageId}`} className="block">
       <div
-          className="relative aspect-square cursor-pointer"
+        className="relative aspect-square"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <Image
-            src={displayImage}
+          src={displayImage}
           alt={name}
           fill
           className="object-cover transition-opacity duration-300"
@@ -132,106 +140,137 @@ export function HoodieCard({
           <Badge className="bg-yellow-500 text-dark-900 hover:bg-yellow-600">Metaverse Item</Badge>
         </div>
       </div>
-      </Link>
       <div className="p-4">
-        <Link href={`/product/${productPageId}`} className="block">
-          <h3 className="text-lg font-semibold text-gray-100 group-hover:text-yellow-500 transition-colors cursor-pointer">{name}</h3>
-        </Link>
+        <h3 className="text-lg font-semibold text-gray-100 group-hover:text-yellow-500 transition-colors">{name}</h3>
         <p className="text-gray-400 mb-2">${(selectedVariant?.price || price).toFixed(2)}</p>
         <p className="text-xs text-gray-500 mb-4 line-clamp-2">{description}</p>
-        {/* Step-based Color/Size Selection */}
-        {colorOption && step === 'idle' && (
-          <div className="mb-2 flex justify-center">
-            <Button
-              className="w-full"
-              onClick={() => setStep('color')}
-              type="button"
-            >
-              Choose Color
-            </Button>
+        {/* Step 1: Choose Color */}
+        {colorOption && (
+          <div className="mb-2">
+            {/* Only show the button for opening color selection if color not yet selected AND color select is not open */}
+            {colorStepActive && !colorSelectOpen && (
+              <Button
+                className={`w-full bg-yellow-500 text-dark-900 font-semibold`}
+                onClick={() => setColorSelectOpen(true)}
+              >
+                Choose Color
+              </Button>
+            )}
+            {/* Color selection pills appear after clicking the button OR when changing color */}
+            {colorSelectOpen && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {colorOption.values.map((val) => (
+                  <button
+                    key={val.id}
+                    type="button"
+                    onClick={() => handleColorSelect(String(val.id))}
+                    className={`px-4 py-1 rounded-full font-semibold text-xs transition-colors
+                      ${selectedColorId === String(val.id)
+                        ? 'bg-yellow-400 text-black border-2 border-yellow-500'
+                        : 'bg-black text-white border border-gray-700 hover:bg-yellow-500 hover:text-black'}
+                    `}
+                  >
+                    {val.title}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
-        {colorOption && step === 'color' && (
-          <div className="mb-2 animate-fade-in">
-            <div className="text-xs font-semibold mb-1 text-gray-400">Colors</div>
-            <div className="flex flex-wrap gap-2">
-              {colorOption.values.map((val) => (
-                <button
-                  key={val.id}
-                  className={`px-3 py-1 rounded font-medium border transition-colors text-xs ${colorId === String(val.id) ? "bg-yellow-500 text-dark-900 border-yellow-500" : "bg-dark-900 text-gray-100 border-gray-700 hover:bg-yellow-600 hover:text-dark-900"}`}
-                  onClick={() => handleOptionChange(colorOption.name, String(val.id))}
-                  type="button"
-                >
-                  {val.title}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {sizeOption && step === 'size' && (
-          <div className="mb-2 animate-fade-in">
-            <div className="flex items-center justify-between mb-1">
-              <div className="text-xs font-semibold text-gray-400">Sizes</div>
-              <Button variant="link" className="p-0 h-auto text-lg font-bold font-sans" onClick={() => setStep('color')} type="button">Change Color</Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
+        {/* Step 2: Choose Size (always show clickable pill(s), even if only one size) */}
+        {sizeOption && !!selectedColorId && !selectedSizeId && (
+          <div className="mb-2">
+            <span className="text-xs text-gray-400 font-medium">Sizes</span>
+            <div className="mt-2 flex flex-wrap gap-2">
               {sizeOption.values.map((val) => (
                 <button
                   key={val.id}
-                  className={`px-3 py-1 rounded font-medium border transition-colors text-xs ${sizeId === String(val.id) ? "bg-yellow-500 text-dark-900 border-yellow-500" : "bg-dark-900 text-gray-100 border-gray-700 hover:bg-yellow-600 hover:text-dark-900"}`}
-                  onClick={() => handleOptionChange(sizeOption.name, String(val.id))}
                   type="button"
+                  onClick={() => handleSizeSelect(String(val.id))}
+                  className={`px-4 py-1 rounded-full font-semibold text-xs transition-colors
+                    ${selectedSizeId === String(val.id)
+                      ? 'bg-blue-600 text-white border-2 border-blue-400'
+                      : 'bg-black text-white border border-gray-700 hover:bg-blue-500 hover:text-white'}
+                  `}
                 >
                   {val.title}
                 </button>
               ))}
             </div>
+            {/* Change Color as text under size selection */}
+            {colorOption && (
+              <div className="mt-3">
+                <button
+                  type="button"
+                  className="text-yellow-500 hover:text-yellow-400 text-sm font-medium underline"
+                  onClick={() => { 
+                    setSelectedColorId(null); 
+                    setSelectedSizeId(null); 
+                    setAddedToCart(false);
+                    setColorSelectOpen(true); // Show color selection directly
+                  }}
+                >
+                  Change Color
+                </button>
+              </div>
+            )}
           </div>
         )}
-        {/* Add to Cart always visible when done or postAdd */}
-        {(step === 'done' || step === 'postAdd') && (
-          <div className={`flex gap-2 mt-2 transition-opacity duration-300 ${step === 'done' ? 'opacity-100' : 'opacity-100'}`}>
+        {/* Step 3: Add to Cart */}
+        {canAddToCart && (
+          <div className="flex gap-2 mt-2">
             <Button
-              className={
-                step === 'done'
-                  ? "flex-1 border-2 border-yellow-500 text-yellow-500 font-bold bg-transparent hover:bg-yellow-500 hover:text-dark-900 transition-colors"
-                  : "flex-1 bg-yellow-500 hover:bg-yellow-600 text-dark-900 border-none font-bold"
-              }
+              className={`flex-1 border-2 border-yellow-400 font-bold py-3 flex items-center justify-center text-sm transition-colors
+                ${addedToCart
+                  ? 'bg-yellow-400 text-black border-yellow-400'
+                  : 'bg-transparent text-yellow-400 hover:bg-yellow-400 hover:text-black'}
+              `}
               onClick={handleAddToCart}
-              disabled={!selectedVariant || !allOptionsSelected || showSuccess}
+              disabled={addedToCart}
             >
-              {showSuccess ? (
-                <CheckCircle className="w-5 h-5 mr-2 text-green-500 animate-pulse" />
+              {addedToCart ? (
+                <>
+                  <span className="mr-2">✔</span> Added!
+                </>
               ) : (
-                <ShoppingCart className="w-4 h-4 mr-2" />
+                <>
+                  <ShoppingCart className="w-5 h-5 mr-2" /> Add to Cart
+                </>
               )}
-              {showSuccess ? 'Added!' : 'Add to Cart'}
             </Button>
           </div>
         )}
-        {/* After Add to Cart: Offer to change color/size for new selection */}
-        {step === 'postAdd' && (
-          <div className="flex flex-col gap-2 mt-2 animate-fade-in">
-            <div className="text-xs text-gray-400 text-center mb-2">Want to add another with a different option?</div>
-        <div className="flex gap-2">
-          <Button
-                className="flex-1 border-2 border-green-500 text-green-500 font-bold bg-transparent hover:bg-green-500 hover:text-dark-900 transition-colors"
-                onClick={() => setStep('color')}
-                type="button"
+        {/* Change Color/Size after adding to cart or when both options are selected */}
+        {selectedColorId && selectedSizeId && (
+          <div className="flex gap-2 mt-4">
+            {colorOption && (
+              <Button
+                className="flex-1 border-2 border-green-500 text-green-500 font-bold bg-transparent hover:bg-green-500 hover:text-white transition-colors py-3 text-sm"
+                style={{ boxShadow: 'none' }}
+                onClick={() => { 
+                  setSelectedColorId(null); 
+                  setSelectedSizeId(null); 
+                  setAddedToCart(false);
+                  setColorSelectOpen(true); // Show color selection directly
+                }}
+                variant="outline"
               >
                 Change Color
               </Button>
+            )}
+            {sizeOption && (
               <Button
-                className="flex-1 border-2 border-blue-500 text-blue-500 font-bold bg-transparent hover:bg-blue-500 hover:text-dark-900 transition-colors"
-                onClick={() => setStep('size')}
-                type="button"
+                className="flex-1 border-2 border-blue-500 text-blue-500 font-bold bg-transparent hover:bg-blue-500 hover:text-white transition-colors py-3 text-sm"
+                style={{ boxShadow: 'none' }}
+                onClick={() => { setSelectedSizeId(null); setAddedToCart(false); }}
+                variant="outline"
               >
                 Change Size
-          </Button>
-        </div>
+              </Button>
+            )}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

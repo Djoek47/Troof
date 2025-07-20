@@ -7,7 +7,6 @@ import { EnhancedCheckoutForm } from "@/components/checkout/enhanced-checkout-fo
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, ShoppingCart, Shield } from "lucide-react"
 import Image from "next/image"
-import { getPrintifyProductId } from "@/data/products";
 
 export default function CheckoutPage() {
   const { state } = useCart()
@@ -23,14 +22,12 @@ export default function CheckoutPage() {
   useEffect(() => {
     const fetchPrintifyProducts = async () => {
       try {
-        // Fetch raw Printify products with real IDs for mapping
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-        const res = await fetch(`${baseUrl}/api/printify-products/raw`)
+        const res = await fetch(`${baseUrl}/api/printify-products`)
         if (!res.ok) throw new Error("Failed to fetch Printify products")
         const data = await res.json()
         setPrintifyProducts(data)
       } catch (e) {
-        console.error("Failed to fetch Printify products:", e)
         setPrintifyProducts([])
       }
     }
@@ -65,30 +62,18 @@ export default function CheckoutPage() {
 
   // Helper: Map cart item to Printify product/variant and extract size/color labels
   function getPrintifyProductInfo(item: any) {
-    // Use stable mapping: get the real Printify product ID from the mock ID
-    const printifyProductId = getPrintifyProductId(item.id);
-    if (!printifyProductId) {
-      return { name: item.name, image: item.image1, price: item.price, size: item.size, color: item.color };
-    }
-    
-    // Find the actual Printify product by its real ID
-    const product = printifyProducts.find(p => p.id.toString() === printifyProductId);
-    if (!product) {
-      return { name: item.name, image: item.image1, price: item.price, size: item.size, color: item.color };
-    }
-    
+    const product = printifyProducts[item.id - 1]
+    if (!product) return { name: item.name, image: item.image1, price: item.price, size: item.size, color: item.color }
     // Try to find the variant that matches both size and color
     let variant = product.variants[0]
     if (item.size || item.color) {
       variant = product.variants.find((v: any) => {
-        if (!v.options || !Array.isArray(v.options)) return false;
-        
         let matches = true
         if (item.size) {
-          matches = matches && v.options.some((o: any) => o && o.value === item.size)
+          matches = matches && v.options && v.options.some((o: any) => o.value === item.size)
         }
         if (item.color) {
-          matches = matches && v.options.some((o: any) => o && o.value === item.color)
+          matches = matches && v.options && v.options.some((o: any) => o.value === item.color)
         }
         return matches
       }) || product.variants.find((v: any) => v.is_enabled) || product.variants[0]
@@ -98,18 +83,16 @@ export default function CheckoutPage() {
     // Extract size and color labels from variant options
     let sizeLabel = undefined
     let colorLabel = undefined
-    if (variant.options && Array.isArray(variant.options)) {
+    if (variant.options) {
       for (const opt of variant.options) {
-        if (opt && opt.name && typeof opt.name === 'string') {
-          if (opt.name.toLowerCase().includes('size')) sizeLabel = opt.value
-          if (opt.name.toLowerCase().includes('color')) colorLabel = opt.value
-        }
+        if (opt.name.toLowerCase().includes('size')) sizeLabel = opt.value
+        if (opt.name.toLowerCase().includes('color')) colorLabel = opt.value
       }
     }
     return {
       name: product.name,
       image: product.images?.[0]?.src || item.image1 || "/placeholder.svg",
-      price: (variant.price || item.price) / 100, // Convert cents to dollars
+      price: variant.price || item.price,
       size: sizeLabel,
       color: colorLabel,
     }

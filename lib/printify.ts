@@ -15,6 +15,7 @@ interface PrintifyProduct {
     id: number
     price: number
     is_enabled: boolean
+    options?: PrintifyOption[] | string[]
   }>
   images: Array<{
     src: string
@@ -147,15 +148,6 @@ interface PrintifyVariant {
   price: number;
   is_enabled?: boolean;
   options: PrintifyOption[] | string[];
-}
-
-interface PrintifyProduct {
-  id: number;
-  originalId?: number;
-  name: string;
-  images?: { src: string; variant_ids?: number[]; position?: string; is_default?: boolean }[];
-  variants: PrintifyVariant[];
-  options: { name: string; type?: string; values?: { id: number; title: string }[] }[];
 }
 
 interface CartItem {
@@ -338,6 +330,35 @@ export class PrintifyAPI {
     const defaultImage = product.images.find((img) => img.is_default)?.src || product.images[0]?.src
     const enabledVariants = product.variants.filter((v) => v.is_enabled)
 
+    // Filter options to only show values that are available in enabled variants
+    const filteredOptions = product.options.map(option => {
+      if (option.name.toLowerCase().includes('color') || option.name.toLowerCase().includes('size')) {
+        // For color and size options, only include values that exist in enabled variants
+        const availableValues = option.values.filter(value => {
+          return enabledVariants.some(variant => {
+            if (!variant.options || !Array.isArray(variant.options)) return false;
+            
+            // Check if this variant contains the value ID in its options
+            return (variant.options as any[]).some((opt: any) => {
+              if (typeof opt === 'number') {
+                return opt === value.id;
+              } else if (opt && typeof opt === 'object') {
+                return opt.name && opt.name.toLowerCase().includes(option.name.toLowerCase()) && 
+                       opt.value == value.title;
+              }
+              return false;
+            });
+          });
+        });
+        
+        return {
+          ...option,
+          values: availableValues
+        };
+      }
+      return option;
+    });
+
     return {
       id: product.id.toString(),
       name: product.title,
@@ -350,7 +371,7 @@ export class PrintifyAPI {
         is_enabled: v.is_enabled,
       })),
       images: product.images,
-      options: product.options,
+      options: filteredOptions,
     }
   }
 
@@ -512,7 +533,7 @@ export function getPrintifyVariantInfo(item: CartItem, printifyProducts: Printif
   console.log("Printify variants for product", product.id, ":", product.variants);
 
   // Improved: Find the variant that matches both size and color (case-insensitive, trimmed, and by option name)
-  let variant: PrintifyVariant | undefined = product.variants.find((v: any) => {
+  let variant: any = product.variants.find((v: any) => {
     if (!v.options) return false;
     let matches = true;
     if (item.size) {
@@ -557,9 +578,9 @@ export function getPrintifyVariantInfo(item: CartItem, printifyProducts: Printif
   }
 
   return {
-    productId: product.originalId || product.id,
+    productId: product.id,
     variantId: variant?.id,
-    name: product.name,
+    name: product.title,
     image: product.images?.[0]?.src || item.image1 || "/placeholder.svg",
     price: variant?.price || item.price,
     size: sizeLabel || item.size,
@@ -574,18 +595,38 @@ export function getPrintifyVariantInfo(item: CartItem, printifyProducts: Printif
  */
 export function getPrintifyVariantId(product: any, colorTitle?: string, sizeTitle?: string): number | undefined {
   if (!product || !product.variants || !product.options) return undefined;
+  
+  // Find color and size options
   const colorOption = product.options.find((opt: any) => opt.name.toLowerCase().includes('color'));
   const sizeOption = product.options.find((opt: any) => opt.name.toLowerCase().includes('size'));
-  if (!colorOption || !sizeOption || !Array.isArray(colorOption.values) || !Array.isArray(sizeOption.values)) return undefined;
+  
+  if (!colorOption || !sizeOption || !Array.isArray(colorOption.values) || !Array.isArray(sizeOption.values)) {
+    console.log('Missing color or size options for product:', product.id);
+    return undefined;
+  }
+  
+  // Find color and size IDs by title
   const colorId = colorTitle ? colorOption.values.find((v: any) => v.title.toLowerCase() === colorTitle.toLowerCase())?.id : undefined;
   const sizeId = sizeTitle ? sizeOption.values.find((v: any) => v.title.toLowerCase() === sizeTitle.toLowerCase())?.id : undefined;
-  if (!colorId || !sizeId) return undefined;
-  const colorIndex = product.options.indexOf(colorOption);
-  const sizeIndex = product.options.indexOf(sizeOption);
-  return product.variants.find((variant: any) =>
-    Array.isArray(variant.options) &&
-    variant.options.length > Math.max(colorIndex, sizeIndex) &&
-    variant.options[colorIndex] === colorId &&
-    variant.options[sizeIndex] === sizeId
-  )?.id;
+  
+  if (!colorId || !sizeId) {
+    console.log(`Color or size not found: color="${colorTitle}" (id: ${colorId}), size="${sizeTitle}" (id: ${sizeId})`);
+    return undefined;
+  }
+  
+  // Find the variant that matches both color and size IDs
+  const variant = product.variants.find((variant: any) => {
+    if (!variant.options || !Array.isArray(variant.options)) return false;
+    
+    // Check if this variant has the matching color and size IDs
+    return variant.options.includes(colorId) && variant.options.includes(sizeId);
+  });
+  
+  if (!variant) {
+    console.log(`No variant found for color ID ${colorId} and size ID ${sizeId}`);
+    return undefined;
+  }
+  
+  console.log(`Found variant ${variant.id} for color "${colorTitle}" (${colorId}) and size "${sizeTitle}" (${sizeId})`);
+  return variant.id;
 } 

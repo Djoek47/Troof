@@ -31,6 +31,45 @@ export default function Home() {
     fetchProducts()
   }, [])
 
+  // Helper: Categorize products by title or tags
+  function categorizeProducts(products: any[]) {
+    const categories = {
+      Hoodies: [] as any[],
+      "T-shirts": [] as any[],
+      Caps: [] as any[],
+      Other: [] as any[],
+    };
+    products.forEach((product) => {
+      const title = product.name?.toLowerCase() || "";
+      const tags = (product.tags || []).map((t: string) => t.toLowerCase());
+      
+      // More comprehensive hoodie detection
+      if (title.includes("hoodie") || title.includes("hoody") || title.includes("sweatshirt") || 
+          tags.includes("hoodie") || tags.includes("hoody") || tags.includes("sweatshirt") ||
+          title.includes("pullover") || tags.includes("pullover")) {
+        categories.Hoodies.push(product);
+      } else if (title.includes("t-shirt") || title.includes("tee") || title.includes("tshirt") || 
+                 tags.includes("t-shirt") || tags.includes("tee") || tags.includes("tshirt")) {
+        categories["T-shirts"].push(product);
+      } else if (title.includes("cap") || title.includes("hat") || title.includes("baseball") || 
+                 tags.includes("cap") || tags.includes("hat") || tags.includes("baseball")) {
+        categories.Caps.push(product);
+      } else {
+        // If we can't categorize it, let's check if it might be a hoodie by looking at the blueprint or other indicators
+        // Many hoodies might not have "hoodie" in the name but are still hoodies
+        if (product.blueprint_id && [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(product.blueprint_id)) {
+          // Common hoodie blueprint IDs - adjust these based on your actual Printify blueprints
+          categories.Hoodies.push(product);
+        } else {
+          categories.Other.push(product);
+        }
+      }
+    });
+    return categories;
+  }
+
+  const categorized = categorizeProducts(products);
+
   return (
     <CartWrapper>
       <main id="main-content" className="flex min-h-screen flex-col items-center justify-between">
@@ -45,11 +84,20 @@ export default function Home() {
             ) : error ? (
               <div className="text-center text-red-500">{error}</div>
             ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {products.map((product) => (
-                  <HoodieCard key={product.id} {...product} />
-              ))}
-            </div>
+              <>
+                {Object.entries(categorized).map(([category, items]) =>
+                  items.length > 0 ? (
+                    <div key={category} className="mb-12">
+                      <h3 className="text-2xl font-semibold text-yellow-400 mb-4 text-left pl-2">{category}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {items.map((product) => (
+                          <HoodieCard key={product.id} {...product} />
+                        ))}
+                      </div>
+                    </div>
+                  ) : null
+                )}
+              </>
             )}
           </div>
         </section>

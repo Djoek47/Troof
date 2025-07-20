@@ -14,7 +14,7 @@ type CartAction =
 interface CartContextType {
   state: CartState // This state will represent either the local or server cart, including isOpen
   addItem: (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string }) => Promise<void>
-  removeItem: (id: number, size?: string, color?: string) => Promise<void>
+  removeItem: (id: number) => Promise<void>
   updateQuantity: (id: number, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
   toggleCart: () => void
@@ -233,11 +233,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   // Function to remove item (handles local or server cart)
-  const removeItem = async (id: number, size?: string, color?: string) => {
+  const removeItem = async (id: number) => {
      if (!currentWalletId) {
        // Remove from local storage cart
        const currentItems = getLocalCart();
-       const newItems = currentItems.filter(item => !(item.id === id && item.size === size && item.color === color));
+       const newItems = currentItems.filter(item => item.id !== id);
        saveLocalCart(newItems);
        setLocalCartItems(newItems);
      } else {
@@ -251,7 +251,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id, size, color }),
+          body: JSON.stringify({ id }),
           credentials: 'include'
         });
 

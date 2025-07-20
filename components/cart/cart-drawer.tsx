@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { X, CheckCircle } from "lucide-react"
+import { X } from "lucide-react"
 import { useCart } from "@/context/cart-context"
 import { CartItem } from "@/components/cart/cart-item"
 import { Button } from "@/components/ui/button"
@@ -15,8 +15,6 @@ export function CartDrawer() {
 
   const [printifyProducts, setPrintifyProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [prevCount, setPrevCount] = useState(items.length)
 
   useEffect(() => {
     const fetchPrintifyProducts = async () => {
@@ -33,15 +31,6 @@ export function CartDrawer() {
     }
     fetchPrintifyProducts()
   }, [])
-
-  useEffect(() => {
-    if (isOpen && items.length > prevCount) {
-      setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 770)
-    }
-    setPrevCount(items.length)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items.length, isOpen])
 
   // Calculate total using real Printify prices
   const total = items.reduce((sum, item) => {
@@ -98,16 +87,7 @@ export function CartDrawer() {
       {/* Cart drawer */}
       <div className="relative w-full max-w-md bg-dark-800 shadow-xl flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <div className="flex items-center gap-2 min-h-[32px]">
-            {showSuccess ? (
-              <>
-                <CheckCircle className="h-6 w-6 text-green-500 animate-pulse" />
-                <span className="text-lg font-bold text-green-500 animate-fade-in">Added to Cart!</span>
-              </>
-            ) : (
           <h2 className="text-lg font-medium text-gray-100">Your Cart</h2>
-            )}
-          </div>
           <button
             onClick={closeCart}
             className="p-2 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
@@ -132,7 +112,7 @@ export function CartDrawer() {
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <CartItem key={`${item.id}-${item.size || ''}-${item.color || ''}`} item={item} printifyProducts={printifyProducts} closeCart={closeCart} />
+                <CartItem key={`${item.id}-${item.size || ''}-${item.color || ''}`} item={item} printifyProducts={printifyProducts} />
               ))}
             </div>
           )}

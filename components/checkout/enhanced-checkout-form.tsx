@@ -14,7 +14,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CreditCard, Clock } from "lucide-react"
 import StripePaymentForm from "@/components/checkout/stripe-payment-form"
 import { getPrintifyVariantId } from "@/lib/printify"
-import { getPrintifyProductId } from "@/data/products";
 
 interface PaymentMethod {
   id: string
@@ -98,14 +97,12 @@ export const EnhancedCheckoutForm = () => {
   useEffect(() => {
     const fetchPrintifyProducts = async () => {
       try {
-        // Fetch raw Printify products with real IDs for mapping
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-        const res = await fetch(`${baseUrl}/api/printify-products/raw`)
+        const res = await fetch(`${baseUrl}/api/printify-products`)
         if (!res.ok) throw new Error("Failed to fetch Printify products")
         const data = await res.json()
         setPrintifyProducts(data)
       } catch (e) {
-        console.error("Failed to fetch Printify products:", e)
         setPrintifyProducts([])
       }
     }
@@ -127,16 +124,10 @@ export const EnhancedCheckoutForm = () => {
   // Calculate total using real Printify prices
   const calculateTotal = () => {
     return state.items.reduce((total, item) => {
-      // Use stable mapping: get the real Printify product ID from the mock ID
-      const printifyProductId = getPrintifyProductId(item.id);
-      if (!printifyProductId) return total + (item.price * item.quantity);
-      
-      // Find the actual Printify product by its real ID
-      const product = printifyProducts.find(p => p.id.toString() === printifyProductId);
-      if (!product) return total + (item.price * item.quantity);
-      
+      const product = printifyProducts[item.id - 1];
+      if (!product) return total;
       const variant = product.variants.find((v: any) => v.is_enabled) || product.variants[0];
-      const price = (variant.price || item.price) / 100; // Convert cents to dollars
+      const price = variant.price || item.price;
       return total + price * item.quantity;
     }, 0);
   };
@@ -164,20 +155,11 @@ export const EnhancedCheckoutForm = () => {
 
   // Helper: Map cart item to Printify product/variant
   function mapCartItemToPrintify(item: any) {
-    // Use stable mapping: get the real Printify product ID from the mock ID
-    const printifyProductId = getPrintifyProductId(item.id);
-    if (!printifyProductId) {
-      console.error("No Printify product ID mapped for cart item", item);
-      return null;
-    }
-    
-    // Find the actual Printify product by its real ID
-    const product = printifyProducts.find(p => p.id.toString() === printifyProductId);
+    const product = printifyProducts[item.id - 1];
     if (!product) {
-      console.error("Printify product not found for ID", printifyProductId);
+      console.error("No Printify product found for cart item", item);
       return null;
     }
-    
     // Use robust mapping to get the correct variantId
     const variantId = getPrintifyVariantId(product, item.color, item.size);
     const variant = product.variants.find((v: any) => v.id === variantId) || product.variants[0];
@@ -318,195 +300,195 @@ export const EnhancedCheckoutForm = () => {
       <div className="flex flex-col md:flex-row gap-8">
         {/* Left: Forms */}
         <form onSubmit={handleSubmit} className="flex-1 space-y-6">
-          {/* Shipping Address */}
+        {/* Shipping Address */}
           <Card className="bg-dark-800 border-dark-700">
-            <CardHeader>
-              <CardTitle>Shipping Address</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={shippingAddress.firstName}
-                    onChange={(e) => handleAddressChange("firstName", e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={shippingAddress.lastName}
-                    onChange={(e) => handleAddressChange("lastName", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
+          <CardHeader>
+            <CardTitle>Shipping Address</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="firstName">First Name</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={shippingAddress.email}
-                  onChange={(e) => handleAddressChange("email", e.target.value)}
+                  id="firstName"
+                  value={shippingAddress.firstName}
+                  onChange={(e) => handleAddressChange("firstName", e.target.value)}
                   required
                 />
               </div>
-
               <div>
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="lastName">Last Name</Label>
                 <Input
-                  id="phone"
-                  value={shippingAddress.phone}
-                  onChange={(e) => handleAddressChange("phone", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="address1">Address</Label>
-                <Input
-                  id="address1"
-                  value={shippingAddress.address1}
-                  onChange={(e) => handleAddressChange("address1", e.target.value)}
+                  id="lastName"
+                  value={shippingAddress.lastName}
+                  onChange={(e) => handleAddressChange("lastName", e.target.value)}
                   required
                 />
               </div>
+            </div>
 
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={shippingAddress.email}
+                onChange={(e) => handleAddressChange("email", e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                value={shippingAddress.phone}
+                onChange={(e) => handleAddressChange("phone", e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="address1">Address</Label>
+              <Input
+                id="address1"
+                value={shippingAddress.address1}
+                onChange={(e) => handleAddressChange("address1", e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="address2">Address 2 (Optional)</Label>
+              <Input
+                id="address2"
+                value={shippingAddress.address2}
+                onChange={(e) => handleAddressChange("address2", e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="address2">Address 2 (Optional)</Label>
+                <Label htmlFor="city">City</Label>
                 <Input
-                  id="address2"
-                  value={shippingAddress.address2}
-                  onChange={(e) => handleAddressChange("address2", e.target.value)}
+                  id="city"
+                  value={shippingAddress.city}
+                  onChange={(e) => handleAddressChange("city", e.target.value)}
+                  required
                 />
               </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    value={shippingAddress.city}
-                    onChange={(e) => handleAddressChange("city", e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    value={shippingAddress.state}
-                    onChange={(e) => handleAddressChange("state", e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="zipCode">ZIP Code</Label>
-                  <Input
-                    id="zipCode"
-                    value={shippingAddress.zipCode}
-                    onChange={(e) => handleAddressChange("zipCode", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
               <div>
-                <Label htmlFor="country">Country</Label>
-                <Select value={shippingAddress.country} onValueChange={(value) => handleAddressChange("country", value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="US">United States</SelectItem>
-                    <SelectItem value="CA">Canada</SelectItem>
-                    <SelectItem value="GB">United Kingdom</SelectItem>
-                    <SelectItem value="AU">Australia</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  value={shippingAddress.state}
+                  onChange={(e) => handleAddressChange("state", e.target.value)}
+                  required
+                />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <Label htmlFor="zipCode">ZIP Code</Label>
+                <Input
+                  id="zipCode"
+                  value={shippingAddress.zipCode}
+                  onChange={(e) => handleAddressChange("zipCode", e.target.value)}
+                  required
+                />
+              </div>
+            </div>
 
-          {/* Payment Method */}
+            <div>
+              <Label htmlFor="country">Country</Label>
+              <Select value={shippingAddress.country} onValueChange={(value) => handleAddressChange("country", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="US">United States</SelectItem>
+                  <SelectItem value="CA">Canada</SelectItem>
+                  <SelectItem value="GB">United Kingdom</SelectItem>
+                  <SelectItem value="AU">Australia</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Payment Method */}
           <Card className="bg-dark-800 border-dark-700">
-            <CardHeader>
-              <CardTitle>Payment Method</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {paymentMethods.map((method) => (
-                <div
-                  key={method.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedPaymentMethod === method.id
+          <CardHeader>
+            <CardTitle>Payment Method</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {paymentMethods.map((method) => (
+              <div
+                key={method.id}
+                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                  selectedPaymentMethod === method.id
                       ? "border-yellow-500 bg-yellow-500 text-black"
                       : "border-gray-200 hover:border-gray-300 bg-transparent text-white"
-                  }`}
-                  onClick={() => setSelectedPaymentMethod(method.id)}
-                >
-                  <div className="flex items-center space-x-3">
-                    {method.type === "card" && <CreditCard className="h-5 w-5" />}
-                    {method.type === "manual" && <Clock className="h-5 w-5" />}
-                    <div>
+                }`}
+                onClick={() => setSelectedPaymentMethod(method.id)}
+              >
+                <div className="flex items-center space-x-3">
+                  {method.type === "card" && <CreditCard className="h-5 w-5" />}
+                  {method.type === "manual" && <Clock className="h-5 w-5" />}
+                  <div>
                       <div className={`font-medium ${selectedPaymentMethod === method.id ? 'text-black' : 'text-white'}`}>{method.name}</div>
                       <div className={`text-sm ${selectedPaymentMethod === method.id ? 'text-black/80' : 'text-gray-400'}`}>{method.description}</div>
-                    </div>
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value={method.id}
-                      checked={selectedPaymentMethod === method.id}
-                      onChange={() => setSelectedPaymentMethod(method.id)}
-                      className="ml-auto"
-                    />
                   </div>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={method.id}
+                    checked={selectedPaymentMethod === method.id}
+                    onChange={() => setSelectedPaymentMethod(method.id)}
+                    className="ml-auto"
+                  />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-          {!showStripeForm && (
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                "Place Order"
-              )}
-            </Button>
-          )}
-        </form>
+        {!showStripeForm && (
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              "Place Order"
+            )}
+          </Button>
+        )}
+      </form>
       </div>
 
       {/* Stripe Payment Form (now at the very bottom of the checkout section) */}
       {showStripeForm && clientSecret && (
         <div className="w-full md:w-2/3 mx-auto mt-8">
           <Card className="bg-dark-800 border-dark-700">
-            <CardHeader>
-              <CardTitle>Complete Payment</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <StripePaymentForm
-                clientSecret={clientSecret}
-                onSuccess={handleStripeSuccess}
-                onError={handleStripeError}
+          <CardHeader>
+            <CardTitle>Complete Payment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StripePaymentForm
+              clientSecret={clientSecret}
+              onSuccess={handleStripeSuccess}
+              onError={handleStripeError}
                 amount={calculateTotal() * 100}
                 isProcessing={stripeProcessing}
                 setIsProcessing={setStripeProcessing}
-              />
-            </CardContent>
-          </Card>
+            />
+          </CardContent>
+        </Card>
         </div>
       )}
     </>
