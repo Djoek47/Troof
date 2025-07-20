@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { Minus, Plus, X } from "lucide-react"
 import { useCart } from "@/context/cart-context"
 import type { CartItem as CartItemType } from "@/types/cart"
@@ -91,7 +92,9 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
         )}
       </div>
       <div className="ml-4 flex-grow">
-        <h4 className="text-sm font-medium text-gray-100">{info.name}</h4>
+        <Link href={`/product/${item.id}`} className="text-sm font-medium text-gray-100 hover:text-yellow-500 transition-colors">
+          {info.name}
+        </Link>
         <p className="text-sm text-gray-400">${info.price.toFixed(2)}</p>
         {info.color && <p className="text-xs text-gray-400">Color: {info.color}</p>}
         {info.size && <p className="text-xs text-gray-400">Size: {info.size}</p>}

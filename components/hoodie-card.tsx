@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -139,11 +140,24 @@ export function HoodieCard({
         <div className="absolute top-2 right-2">
           <Badge className="bg-yellow-500 text-dark-900 hover:bg-yellow-600">Metaverse Item</Badge>
         </div>
+        {/* Hover overlay for View Details */}
+        <Link href={`/product/${id}`}>
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
+            <span className="text-white font-semibold text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-20">
+              View Details
+            </span>
+          </div>
+        </Link>
       </div>
       <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-100 group-hover:text-yellow-500 transition-colors">{name}</h3>
+        <Link href={`/product/${id}`}>
+          <h3 className="text-lg font-semibold text-gray-100 group-hover:text-yellow-500 transition-colors cursor-pointer">{name}</h3>
+        </Link>
         <p className="text-gray-400 mb-2">${(selectedVariant?.price || price).toFixed(2)}</p>
         <p className="text-xs text-gray-500 mb-4 line-clamp-2">{description}</p>
+        
+        {/* View Details Button */}
+        {/* Removed as per edit hint */}
         {/* Step 1: Choose Color */}
         {colorOption && (
           <div className="mb-2">
