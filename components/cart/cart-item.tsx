@@ -16,7 +16,7 @@ interface CartItemProps {
 export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
   const { removeItem, updateQuantity, state } = useCart()
   const [imageError, setImageError] = useState(false)
-  
+
   // Get the latest item data from the cart context to ensure we have the most up-to-date information
   const latestItem = state.items.find(cartItem => 
     cartItem.id === item.id && 
@@ -31,16 +31,51 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
   })
 
   // Enhanced Helper: Map cart item to Printify product/variant with intelligent color-to-image mapping
-  function getPrintifyProductInfo(item: any) {
-    console.log(`[Cart Item] Processing item:`, item)
+  function getPrintifyProductInfo(cartItem: any) {
+    console.log(`[Cart Item] Processing item:`, cartItem)
+    console.log(`[Cart Item] Item variantImage:`, cartItem.variantImage);
+    console.log(`[Cart Item] Item keys:`, Object.keys(cartItem));
     console.log(`[Cart Item] Printify products count:`, printifyProducts.length)
     
-    // ALWAYS prioritize Printify data over any item data when available
-    const printifyProduct = printifyProducts[item.id - 1];
-    if (printifyProduct) {
-      console.log(`[Cart Item] Found Printify product for ID ${item.id}:`, printifyProduct);
+    // PRIORITY 1: If we have a variant image stored, use it (this ensures color accuracy)
+    if (cartItem.variantImage) {
+      console.log(`[Cart Item] PRIORITY 1: Using stored variant image for color accuracy:`, cartItem.variantImage)
       
-      // Use Printify data exclusively, ignore any mock data from the item
+      // Get Printify data for name/price if available
+      const printifyProduct = printifyProducts[cartItem.id - 1];
+      if (printifyProduct) {
+        const variant = printifyProduct.variants?.find((v: any) => v.is_enabled) || printifyProduct.variants?.[0];
+        let price = variant?.price || 0;
+        
+        // Convert price from cents to dollars if needed
+        if (price > 1000) {
+          price = price / 100;
+        }
+        
+        return {
+          name: printifyProduct.name,
+          price: price,
+          size: cartItem.size,
+          color: cartItem.color,
+          image: cartItem.variantImage, // ALWAYS use the stored variant image for color accuracy
+        };
+      } else {
+        // Fallback to item data if no Printify product found
+        return {
+          name: cartItem.name,
+          image: cartItem.variantImage,
+          price: cartItem.price,
+          size: cartItem.size,
+          color: cartItem.color,
+        };
+      }
+    }
+    
+    // PRIORITY 2: Use Printify data if no variant image stored
+    const printifyProduct = printifyProducts[cartItem.id - 1];
+    if (printifyProduct) {
+      console.log(`[Cart Item] PRIORITY 2: Using Printify data (no variant image stored):`, printifyProduct);
+      
       const variant = printifyProduct.variants?.find((v: any) => v.is_enabled) || printifyProduct.variants?.[0];
       let price = variant?.price || 0;
       
@@ -49,42 +84,21 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
         price = price / 100;
       }
       
-      console.log(`[Cart Item] Using Printify data exclusively for item ${item.id}:`, {
-        name: printifyProduct.name,
-        price: price,
-        originalItemName: item.name,
-        originalItemPrice: item.price
-      });
-      
-      // Return Printify data with item's size/color
       return {
         name: printifyProduct.name,
         price: price,
-        size: item.size,
-        color: item.color,
-        // Use Printify image if available, otherwise fallback
-        image: printifyProduct.images?.[0]?.src || item.variantImage || "/placeholder.svg",
+        size: cartItem.size,
+        color: cartItem.color,
+        image: printifyProduct.images?.[0]?.src || "/placeholder.svg",
       };
     }
     
-    // If we have a variant image stored, use it (this ensures color accuracy)
-    if (item.variantImage) {
-      console.log(`[Cart Item] Using stored variant image:`, item.variantImage)
-      return {
-        name: item.name,
-        image: item.variantImage,
-        price: item.price,
-        size: item.size,
-        color: item.color,
-      }
-    }
-    
-    const product = printifyProducts[item.id - 1]
-    console.log(`[Cart Item] Found product for ID ${item.id}:`, product)
+    const product = printifyProducts[cartItem.id - 1]
+    console.log(`[Cart Item] Found product for ID ${cartItem.id}:`, product)
     
     if (!product) {
       console.log(`[Cart Item] No product found, using fallback`)
-      return { name: item.name, image: item.image1, price: item.price, size: item.size, color: item.color }
+      return { name: cartItem.name, image: cartItem.image1, price: cartItem.price, size: cartItem.size, color: cartItem.color }
     }
     
     // Use Printify product name and price
@@ -111,7 +125,7 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
     }
     
     // Strategy 1: Use Printify's variant ID system for exact color matching
-    const colorName = item.color
+    const colorName = cartItem.color
     const colorNameLower = colorName?.toLowerCase()
     
     console.log(`[Cart Item] Looking for color: ${colorName}`)
@@ -165,8 +179,8 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
                         name: product.title || product.name,
                         image: frontImage.src,
                         price: price,
-                        size: item.size,
-                        color: item.color,
+                        size: cartItem.size,
+                        color: cartItem.color,
                       }
                     } else {
                       // Use any variant image if no front-facing one found
@@ -175,8 +189,8 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
                         name: product.title || product.name,
                         image: variantImages[0].src,
                         price: price,
-                        size: item.size,
-                        color: item.color,
+                        size: cartItem.size,
+                        color: cartItem.color,
                       }
                     }
             }
@@ -223,8 +237,8 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
                 name: product.title || product.name,
                 image: colorMatchingImage.src,
                 price: price,
-                size: item.size,
-                color: item.color,
+                size: cartItem.size,
+                color: cartItem.color,
               }
             }
       
@@ -270,23 +284,26 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
               name: product.title || product.name,
               image: selectedImage.src,
               price: price,
-              size: item.size,
-              color: item.color,
+              size: cartItem.size,
+              color: cartItem.color,
             }
           }
           
           // Strategy 4: Fallback to default image
           console.log(`[Cart Item] No suitable image found for color ${colorName}, using default image`)
-          return {
+    return {
             name: product.title || product.name,
-            image: product.images?.[0]?.src || item.image1 || "/placeholder.svg",
+      image: product.images?.[0]?.src || item.image1 || "/placeholder.svg",
             price: price,
-            size: item.size,
-            color: item.color,
+            size: cartItem.size,
+            color: cartItem.color,
           }
   }
 
+  console.log(`[Cart Item] About to call getPrintifyProductInfo with:`, latestItem);
+  console.log(`[Cart Item] latestItem.variantImage:`, latestItem.variantImage);
   const info = getPrintifyProductInfo(latestItem)
+  console.log(`[Cart Item] getPrintifyProductInfo returned:`, info);
 
   const handleIncrement = () => {
     updateQuantity(latestItem.id, latestItem.quantity + 1)

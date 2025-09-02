@@ -156,13 +156,17 @@ export function CartDrawer() {
           ) : (
             <div className="space-y-6">
               {console.log('[CartDrawer] Rendering items:', items)}
-              {items.map((item) => (
-                <CartItem 
-                  key={`${item.id}-${item.size || ''}-${item.color || ''}-${refreshKey}`} 
-                  item={item} 
-                  printifyProducts={printifyProducts} 
-                />
-              ))}
+              {items.map((item) => {
+                console.log(`[Cart Drawer] Passing item to CartItem:`, item);
+                console.log(`[Cart Drawer] Item variantImage:`, item.variantImage);
+                return (
+                  <CartItem 
+                    key={`${item.id}-${item.size || ''}-${item.color || ''}-${refreshKey}`} 
+                    item={item} 
+                    printifyProducts={printifyProducts} 
+                  />
+                );
+              })}
             </div>
           )}
         </div>

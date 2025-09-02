@@ -194,6 +194,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existingItemIndex > -1) {
         newItems = [...currentItems];
         newItems[existingItemIndex].quantity += item.quantity;
+        
+        // Update variantImage if a new one is provided (for color coordination)
+        if (item.variantImage && newItems[existingItemIndex].variantImage !== item.variantImage) {
+          newItems[existingItemIndex].variantImage = item.variantImage;
+          console.log(`[Cart Context] Updated variantImage for existing item ${item.id}:`, item.variantImage);
+        }
       } else {
         // Need product details for local storage item
         // Always prioritize Printify data over mock data when available
@@ -224,12 +230,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
             };
           }
         }
+        
+        // Ensure variantImage is properly stored for color coordination
+        const cartItemToAdd = {
+          ...productToAdd,
+          ...item, // This ensures all custom fields (size, color, etc.) are preserved
+          variantImage: item.variantImage || productToAdd.image1, // Explicitly store variantImage
+        };
+        
+        console.log('[Cart Context] Cart item to add with variantImage:', cartItemToAdd);
+        console.log('[Cart Context] Original item variantImage:', item.variantImage);
+        console.log('[Cart Context] Final stored variantImage:', cartItemToAdd.variantImage);
+        
         newItems = [
           ...currentItems,
-          {
-            ...productToAdd,
-            ...item, // This ensures all custom fields (size, color, etc.) are preserved
-          },
+          cartItemToAdd,
         ];
       }
       console.log('New items to save:', newItems);
