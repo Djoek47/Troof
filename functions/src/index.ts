@@ -58,6 +58,7 @@ interface CartItem {
   quantity: number;
   size: string;
   color: string;
+  variantImage?: string; // Optional field for color-coordinated images
 }
 
 interface CartState {
@@ -167,7 +168,7 @@ app.get('/cart/storage', async (req, res) => {
 
 app.post('/cart/add', async (req, res) => {
   try {
-    const { id, quantity, size, color } = req.body;
+    const { id, quantity, size, color, variantImage } = req.body;
     const walletId = req.query.walletId as string;
     if (typeof id !== 'number' || typeof quantity !== 'number' || quantity <= 0) {
       return res.status(400).json({ message: 'Invalid item ID or quantity provided.' });
@@ -186,8 +187,12 @@ app.post('/cart/add', async (req, res) => {
     );
     if (existingItemIndex > -1) {
       cart.items[existingItemIndex].quantity += quantity;
+      // Update variantImage if provided (for color coordination)
+      if (variantImage) {
+        cart.items[existingItemIndex].variantImage = variantImage;
+      }
     } else {
-      cart.items.push({ ...productToAdd, quantity, size, color });
+      cart.items.push({ ...productToAdd, quantity, size, color, variantImage });
     }
     await saveCart(cartPath, cart);
     res.json({

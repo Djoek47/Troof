@@ -266,6 +266,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             quantity: item.quantity,
             size: item.size,
             color: item.color,
+            variantImage: item.variantImage, // Add variantImage for color coordination
           }),
           credentials: 'include'
         });
