@@ -307,9 +307,9 @@ export default function CheckoutPage() {
 
         {/* Right: Shipping/Payment Form (dominant) */}
         <div className="flex-1 flex flex-col gap-8 relative">
-          {/* Logo - More visible and better positioned */}
-          <div className="absolute top-8 right-8 opacity-20 pointer-events-none z-0">
-            <div className="relative w-32 h-32">
+          {/* Logo - Much more visible and better positioned */}
+          <div className="absolute top-8 right-8 opacity-80 pointer-events-none z-0">
+            <div className="relative w-40 h-40">
               <Image 
                 src="/FaberlanD78.png" 
                 alt="FaberlanD Logo" 
