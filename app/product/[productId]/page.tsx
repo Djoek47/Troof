@@ -109,12 +109,12 @@ export default function ProductDetailPage() {
 
   return (
     <CartWrapper>
-      <div className="min-h-screen bg-dark-900 flex flex-col items-center py-8 px-2 mt-20">
-        <div className="w-full max-w-5xl flex flex-col md:flex-row gap-8 bg-dark-800 rounded-lg p-6">
+      <div className="min-h-screen bg-white flex flex-col items-center py-8 px-2 mt-20">
+        <div className="w-full max-w-5xl flex flex-col md:flex-row gap-8 bg-white border border-gray-200 rounded-3xl p-8 shadow-xl">
           {/* Image Gallery */}
           <div className="flex-1 flex flex-col items-center">
             <div className="w-full mb-4 flex justify-start">
-              <button className="text-yellow-500 hover:text-yellow-600 text-sm flex items-center font-bold" onClick={() => router.back()}>
+              <button className="text-gray-600 hover:text-gray-800 text-sm flex items-center font-medium transition-colors" onClick={() => router.back()}>
                 &larr; Back to Store
               </button>
             </div>
@@ -123,7 +123,7 @@ export default function ProductDetailPage() {
                 src={selectedImage || product.image || "/placeholder.svg"}
                 alt={product.name}
                 fill
-                className="object-contain rounded-lg bg-dark-900"
+                className="object-contain rounded-2xl bg-gray-50"
                 priority
               />
             </div>
@@ -132,10 +132,10 @@ export default function ProductDetailPage() {
                 {product.images.map((img: any, idx: number) => (
                   <button
                     key={img.src}
-                    className={`w-16 h-16 rounded border-2 ${selectedImage === img.src ? "border-yellow-500" : "border-transparent"}`}
+                    className={`w-16 h-16 rounded-xl border-2 transition-all duration-200 ${selectedImage === img.src ? "border-yellow-500 shadow-lg" : "border-gray-200 hover:border-gray-300"}`}
                     onClick={() => setSelectedImage(img.src)}
                   >
-                    <Image src={img.src} alt={`thumb-${idx}`} width={64} height={64} className="object-cover rounded" />
+                    <Image src={img.src} alt={`thumb-${idx}`} width={64} height={64} className="object-cover rounded-lg" />
                   </button>
                 ))}
               </div>
@@ -144,24 +144,24 @@ export default function ProductDetailPage() {
 
           {/* Product Info and Selection */}
           <div className="flex-1 flex flex-col justify-center">
-            <h1 className="text-2xl font-bold text-yellow-500 mb-2">{product.name}</h1>
-            <p className="text-lg text-gray-100 mb-2">${(selectedVariant?.price || product.price).toFixed(2)}</p>
-            <p className="text-sm text-gray-400 mb-6">{product.description}</p>
+            <h1 className="text-3xl font-light text-gray-900 mb-3 tracking-tight">{product.name}</h1>
+            <p className="text-2xl font-light text-yellow-500 mb-3">${(selectedVariant?.price || product.price).toFixed(2)}</p>
+            <p className="text-base text-gray-600 mb-8 leading-relaxed">{product.description}</p>
 
             {/* Color Selection - Always Visible */}
             {colorOption && (
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-400 mb-3">Colors</div>
-                <div className="flex flex-wrap gap-2">
+              <div className="mb-8">
+                <div className="text-sm font-medium text-gray-700 mb-4">Colors</div>
+                <div className="flex flex-wrap gap-3">
                   {colorOption.values.map((val: any) => (
                     <button
                       key={val.id}
                       type="button"
                       onClick={() => handleColorSelect(String(val.id))}
-                      className={`px-4 py-2 rounded font-medium text-sm border transition-colors
+                      className={`px-4 py-2 rounded-xl font-medium text-sm border-2 transition-all duration-200
                         ${selectedColorId === String(val.id)
-                          ? 'bg-yellow-500 text-dark-900 border-yellow-500'
-                          : 'bg-dark-900 text-gray-100 border-gray-700 hover:bg-yellow-600 hover:text-dark-900'}
+                          ? 'bg-yellow-500 text-white border-yellow-500 shadow-lg'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-yellow-400 hover:shadow-md'}
                       `}
                     >
                       {val.title}
@@ -173,18 +173,18 @@ export default function ProductDetailPage() {
 
             {/* Size Selection - Always Visible */}
             {sizeOption && (
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-400 mb-3">Sizes</div>
-                <div className="flex flex-wrap gap-2">
+              <div className="mb-8">
+                <div className="text-sm font-medium text-gray-700 mb-4">Sizes</div>
+                <div className="flex flex-wrap gap-3">
                   {sizeOption.values.map((val: any) => (
                     <button
                       key={val.id}
                       type="button"
                       onClick={() => handleSizeSelect(String(val.id))}
-                      className={`px-4 py-2 rounded font-medium text-sm border transition-colors
+                      className={`px-4 py-2 rounded-xl font-medium text-sm border-2 transition-all duration-200
                         ${selectedSizeId === String(val.id)
-                          ? 'bg-blue-600 text-white border-blue-500'
-                          : 'bg-dark-900 text-gray-100 border-gray-700 hover:bg-blue-600 hover:text-white'}
+                          ? 'bg-blue-500 text-white border-blue-500 shadow-lg'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:shadow-md'}
                       `}
                     >
                       {val.title}
@@ -195,16 +195,16 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity Selector */}
-            <div className="mb-6 flex items-center gap-4">
-              <span className="text-sm font-semibold text-gray-400">Quantity</span>
+            <div className="mb-8 flex items-center gap-4">
+              <span className="text-sm font-medium text-gray-700">Quantity</span>
               <button
-                className="w-8 h-8 rounded bg-dark-900 text-gray-100 border border-gray-700 flex items-center justify-center text-xl hover:bg-yellow-600 hover:text-dark-900"
+                className="w-8 h-8 rounded-xl bg-white text-gray-700 border-2 border-gray-300 flex items-center justify-center text-xl hover:border-yellow-400 hover:shadow-md transition-all duration-200"
                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
                 type="button"
               >-</button>
-              <span className="w-8 text-center text-gray-100">{quantity}</span>
+              <span className="w-8 text-center text-gray-700 font-medium">{quantity}</span>
               <button
-                className="w-8 h-8 rounded bg-dark-900 text-gray-100 border border-gray-700 flex items-center justify-center text-xl hover:bg-yellow-600 hover:text-dark-900"
+                className="w-8 h-8 rounded-xl bg-white text-gray-700 border-2 border-gray-300 flex items-center justify-center text-xl hover:border-yellow-400 hover:shadow-md transition-all duration-200"
                 onClick={() => setQuantity(q => q + 1)}
                 type="button"
               >+</button>
@@ -213,17 +213,17 @@ export default function ProductDetailPage() {
             {/* Add to Cart - Always Visible */}
             <div className="mb-4">
               <Button
-                className={`w-full border-2 border-yellow-400 font-bold py-3 flex items-center justify-center text-sm transition-colors
+                className={`w-full border-2 font-medium py-4 flex items-center justify-center text-base transition-all duration-200 rounded-2xl
                   ${addedToCart
-                    ? 'bg-yellow-400 text-black border-yellow-400'
-                    : 'bg-transparent text-yellow-400 hover:bg-yellow-400 hover:text-black'}
+                    ? 'bg-green-500 text-white border-green-500 shadow-lg'
+                    : 'bg-yellow-500 text-white border-yellow-500 hover:bg-yellow-600 hover:shadow-xl transform hover:scale-105'}
                 `}
                 onClick={handleAddToCart}
                 disabled={addedToCart || (!selectedColorId && colorOption) || (!selectedSizeId && sizeOption)}
               >
                 {addedToCart ? (
                   <>
-                    <span className="mr-2">✔</span> Added!
+                    <CheckCircle className="w-5 h-5 mr-2" /> Added to Cart!
                   </>
                 ) : (
                   <>
