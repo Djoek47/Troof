@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { useCart } from "@/context/cart-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -241,11 +242,14 @@ export const EnhancedCheckoutForm = () => {
           throw new Error(errorData.error || "Failed to create order")
         }
 
-        // Clear cart after a short delay
-        setTimeout(() => {
-          clearCart()
-          router.push(`/crypto-payment?email=${encodeURIComponent(shippingAddress.email)}`)
-        }, 100)
+        // Set order details and show crypto confirmation modal
+        const orderWithEmail = {
+          email: shippingAddress.email,
+          items: state.items,
+          shippingAddress: shippingAddress
+        }
+        setOrderDetails(orderWithEmail)
+        setShowConfirmation(true)
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred")
@@ -269,7 +273,13 @@ export const EnhancedCheckoutForm = () => {
       const result = await response.json()
 
       if (result.success) {
-        setOrderDetails(result.order)
+        // Add payment intent ID and email to the order details for Stripe payments
+        const orderWithPaymentId = {
+          ...result.order,
+          paymentIntentId: paymentIntentId,
+          email: shippingAddress.email
+        }
+        setOrderDetails(orderWithPaymentId)
         setShowConfirmation(true)
       } else {
         setError(result.error || "Payment confirmation failed")
@@ -492,7 +502,14 @@ export const EnhancedCheckoutForm = () => {
               )}
             </Button>
             <p className="text-center text-sm text-gray-500 mt-3">
-              By placing your order, you agree to our terms of service and privacy policy
+              By placing your order, you agree to our{" "}
+              <Link href="/terms" className="text-yellow-600 hover:text-yellow-700 underline">
+                terms of service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="text-yellow-600 hover:text-yellow-700 underline">
+                privacy policy
+              </Link>
             </p>
           </div>
         )}
@@ -533,31 +550,41 @@ export const EnhancedCheckoutForm = () => {
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">
-                Order Confirmed! 🎉
-              </h2>
-              
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Your order has been received and is being processed. You'll receive a confirmation email at{" "}
-                <span className="font-medium">{orderDetails.email}</span> with payment instructions.
-              </p>
+                             <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">
+                 {orderDetails.paymentIntentId ? 'Order Confirmed! 🎉' : 'Crypto Payment Requested! 🚀'}
+               </h2>
+               
+               <p className="text-gray-600 mb-6 leading-relaxed">
+                 {orderDetails.paymentIntentId 
+                   ? `Your order has been received and is being processed. You'll receive a confirmation email at:`
+                   : `Your crypto payment request has been received. You'll be sent a payment link via email at:`
+                 }
+               </p>
+               
+               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                 <p className="text-blue-800 font-semibold text-lg">
+                   {orderDetails.email}
+                 </p>
+               </div>
               
               <div className="bg-gray-50 rounded-2xl p-4 mb-6">
-                <p className="text-sm text-gray-600">
-                  <strong>Order Summary:</strong> {orderDetails.items.length} item(s)
-                </p>
+                {orderDetails.paymentIntentId && (
+                  <p className="text-sm text-gray-600">
+                    <strong>Payment ID:</strong> {orderDetails.paymentIntentId}
+                  </p>
+                )}
               </div>
               
-              <Button
-                onClick={() => {
-                  clearCart()
-                  setShowConfirmation(false)
-                  router.push(`/crypto-payment?email=${encodeURIComponent(orderDetails.email)}`)
-                }}
-                className="w-full font-medium py-4 px-8 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-black text-lg"
-              >
-                View Order Details
-              </Button>
+                             <Button
+                 onClick={() => {
+                   clearCart()
+                   setShowConfirmation(false)
+                   router.push('/')
+                 }}
+                                 className="w-full font-medium py-4 px-8 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-black text-lg"
+               >
+                 Exit Cart
+               </Button>
             </div>
           </div>
         </div>
