@@ -35,6 +35,38 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
     console.log(`[Cart Item] Processing item:`, item)
     console.log(`[Cart Item] Printify products count:`, printifyProducts.length)
     
+    // ALWAYS prioritize Printify data over any item data when available
+    const printifyProduct = printifyProducts[item.id - 1];
+    if (printifyProduct) {
+      console.log(`[Cart Item] Found Printify product for ID ${item.id}:`, printifyProduct);
+      
+      // Use Printify data exclusively, ignore any mock data from the item
+      const variant = printifyProduct.variants?.find((v: any) => v.is_enabled) || printifyProduct.variants?.[0];
+      let price = variant?.price || 0;
+      
+      // Convert price from cents to dollars if needed
+      if (price > 1000) {
+        price = price / 100;
+      }
+      
+      console.log(`[Cart Item] Using Printify data exclusively for item ${item.id}:`, {
+        name: printifyProduct.name,
+        price: price,
+        originalItemName: item.name,
+        originalItemPrice: item.price
+      });
+      
+      // Return Printify data with item's size/color
+      return {
+        name: printifyProduct.name,
+        price: price,
+        size: item.size,
+        color: item.color,
+        // Use Printify image if available, otherwise fallback
+        image: printifyProduct.images?.[0]?.src || item.variantImage || "/placeholder.svg",
+      };
+    }
+    
     // If we have a variant image stored, use it (this ensures color accuracy)
     if (item.variantImage) {
       console.log(`[Cart Item] Using stored variant image:`, item.variantImage)

@@ -296,8 +296,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
               ...item,
               name: printifyProduct.name, // Always use Printify name, never fallback to mock
               price: printifyProduct.variants?.[0]?.price, // Always use Printify price, never fallback to mock
-              // Clear any mock data flags
+              // Clear any mock data flags and ensure we're using Printify data
               isMockData: false,
+              // Force override any existing mock data
+              originalName: printifyProduct.name,
+              originalPrice: printifyProduct.variants?.[0]?.price,
             };
             
             console.log(`[updateLocalCartWithPrintifyData] Item ${item.id} updated:`, {
@@ -320,6 +323,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
           ...prevState,
           items: updatedItems
         }));
+        
+        // Force a complete refresh by clearing and reloading localStorage
+        setTimeout(() => {
+          const refreshedItems = getLocalCart();
+          setLocalCartItems(refreshedItems);
+          setState(prevState => ({
+            ...prevState,
+            items: refreshedItems
+          }));
+          console.log('[updateLocalCartWithPrintifyData] Forced refresh completed');
+        }, 100);
         
         console.log('[updateLocalCartWithPrintifyData] Final updated items:', updatedItems);
         console.log('[updateLocalCartWithPrintifyData] State updated, components should re-render');

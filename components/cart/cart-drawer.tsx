@@ -15,6 +15,7 @@ export function CartDrawer() {
 
   const [printifyProducts, setPrintifyProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0) // Force re-render when Printify data updates
 
   useEffect(() => {
     const fetchPrintifyProducts = async () => {
@@ -33,10 +34,8 @@ export function CartDrawer() {
         // Force a re-render of the cart drawer to show updated data
         setPrintifyProducts([...data])
         
-        // Force a re-render by updating a state variable
-        setTimeout(() => {
-          setPrintifyProducts(prev => [...prev])
-        }, 100)
+        // Force a complete re-render by updating the refresh key
+        setRefreshKey(prev => prev + 1)
       } catch (e) {
         setPrintifyProducts([])
       } finally {
@@ -158,7 +157,11 @@ export function CartDrawer() {
             <div className="space-y-6">
               {console.log('[CartDrawer] Rendering items:', items)}
               {items.map((item) => (
-                <CartItem key={`${item.id}-${item.size || ''}-${item.color || ''}`} item={item} printifyProducts={printifyProducts} />
+                <CartItem 
+                  key={`${item.id}-${item.size || ''}-${item.color || ''}-${refreshKey}`} 
+                  item={item} 
+                  printifyProducts={printifyProducts} 
+                />
               ))}
             </div>
           )}
