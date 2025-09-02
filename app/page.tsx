@@ -337,8 +337,8 @@ export default function Home() {
                 <p className="text-xl md:text-2xl text-gray-200 mb-10 leading-relaxed max-w-3xl mx-auto">
                   Unlock exclusive in-game items and experiences with every purchase
                 </p>
-                <Link href="https://faberland.vercel.app/">
-                  <Button className="bg-white hover:bg-gray-100 text-black px-8 py-4 text-lg font-medium rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+                <Link href="https://www.faber.land/discover">
+                  <Button className="bg-yellow-500 hover:bg-yellow-600 text-black px-8 py-4 text-lg font-medium rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
                     Explore Faberland
                   </Button>
                 </Link>
@@ -391,7 +391,7 @@ export default function Home() {
                   Each Proof of Concept item comes with a unique QR code that connects to your Faberland avatar. Unlock
                   exclusive in-game items and experiences with your purchase.
                 </p>
-                <Link href="https://faberland.vercel.app/">
+                <Link href="https://www.faber.land/">
                   <Button className="bg-gray-900 hover:bg-black text-white px-8 py-4 text-lg font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                     Learn More
                   </Button>

@@ -54,7 +54,7 @@ export function SplashScreen() {
       </div>
 
       {/* Matrix-style loading text */}
-      <div className="font-mono text-gray-900 mb-4 h-6">{`LOADING_PROOF_OF_CONCEPT: ${matrixText}`}</div>
+      <div className="font-mono text-gray-900 mb-4 h-6">{`LOADING_FABERSTORE: ${matrixText}`}</div>
 
       {/* Progress bar container */}
       <div className="w-64 h-1 bg-gray-200 rounded-full overflow-hidden">
@@ -66,7 +66,7 @@ export function SplashScreen() {
 
       {/* Visser Studios logo */}
       <Link
-        href="https://faberland.vercel.app/"
+        href="https://www.faber.land/"
         className="absolute bottom-4 right-4 w-12 h-12 opacity-70 hover:opacity-100 transition-opacity"
       >
         <Image src="/v1-logo.png" alt="Visser Studios" fill className="object-contain" />
@@ -136,7 +136,7 @@ export function ProductSplashScreen() {
 
       {/* Visser Studios logo */}
       <Link
-        href="https://faberland.vercel.app/"
+        href="https://www.faber.land/"
         className="absolute bottom-4 right-4 w-12 h-12 opacity-70 hover:opacity-100 transition-opacity"
       >
         <Image src="/v1-logo.png" alt="Visser Studios" fill className="object-contain" />

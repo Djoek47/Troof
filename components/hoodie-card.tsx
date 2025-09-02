@@ -317,7 +317,7 @@ export function HoodieCard({
             {/* Only show the button for opening color selection if color not yet selected AND color select is not open */}
             {colorStepActive && !colorSelectOpen && (
               <Button
-                className={`w-full bg-gray-900 hover:bg-black text-white font-medium rounded-full py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl`}
+                className={`w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium rounded-full py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl`}
                 onClick={() => setColorSelectOpen(true)}
               >
                 Choose Color

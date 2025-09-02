@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, CreditCard, Clock } from "lucide-react"
+import { Loader2, CreditCard, Clock, CheckCircle } from "lucide-react"
 import StripePaymentForm from "@/components/checkout/stripe-payment-form"
 import { getPrintifyVariantId } from "@/lib/printify"
 
@@ -49,6 +49,8 @@ export const EnhancedCheckoutForm = () => {
   const [showStripeForm, setShowStripeForm] = useState(false)
   const [printifyProducts, setPrintifyProducts] = useState<any[]>([])
   const [stripeProcessing, setStripeProcessing] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [orderDetails, setOrderDetails] = useState<any>(null)
 
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     firstName: "",
@@ -80,7 +82,7 @@ export const EnhancedCheckoutForm = () => {
         setPaymentMethods([
           {
             id: "manual",
-            name: "Manual Processing",
+            name: "Crypto Payment",
             description: "Create order for manual payment processing",
             type: "manual",
             enabled: true,
@@ -242,7 +244,7 @@ export const EnhancedCheckoutForm = () => {
         // Clear cart after a short delay
         setTimeout(() => {
           clearCart()
-          router.push(`/success?manual=1&email=${encodeURIComponent(shippingAddress.email)}`)
+          router.push(`/crypto-payment?email=${encodeURIComponent(shippingAddress.email)}`)
         }, 100)
       }
     } catch (error) {
@@ -267,11 +269,8 @@ export const EnhancedCheckoutForm = () => {
       const result = await response.json()
 
       if (result.success) {
-        // Clear cart after a short delay, then redirect to /success
-        setTimeout(() => {
-          clearCart()
-          router.push("/success")
-        }, 100)
+        setOrderDetails(result.order)
+        setShowConfirmation(true)
       } else {
         setError(result.error || "Payment confirmation failed")
       }
@@ -301,172 +300,201 @@ export const EnhancedCheckoutForm = () => {
         {/* Left: Forms */}
         <form onSubmit={handleSubmit} className="flex-1 space-y-6">
         {/* Shipping Address */}
-          <Card className="bg-dark-800 border-dark-700">
-          <CardHeader>
-            <CardTitle>Shipping Address</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={shippingAddress.firstName}
-                  onChange={(e) => handleAddressChange("firstName", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={shippingAddress.lastName}
-                  onChange={(e) => handleAddressChange("lastName", e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={shippingAddress.email}
-                onChange={(e) => handleAddressChange("email", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={shippingAddress.phone}
-                onChange={(e) => handleAddressChange("phone", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="address1">Address</Label>
-              <Input
-                id="address1"
-                value={shippingAddress.address1}
-                onChange={(e) => handleAddressChange("address1", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="address2">Address 2 (Optional)</Label>
-              <Input
-                id="address2"
-                value={shippingAddress.address2}
-                onChange={(e) => handleAddressChange("address2", e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  value={shippingAddress.city}
-                  onChange={(e) => handleAddressChange("city", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  value={shippingAddress.state}
-                  onChange={(e) => handleAddressChange("state", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="zipCode">ZIP Code</Label>
-                <Input
-                  id="zipCode"
-                  value={shippingAddress.zipCode}
-                  onChange={(e) => handleAddressChange("zipCode", e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="country">Country</Label>
-              <Select value={shippingAddress.country} onValueChange={(value) => handleAddressChange("country", value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="US">United States</SelectItem>
-                  <SelectItem value="CA">Canada</SelectItem>
-                  <SelectItem value="GB">United Kingdom</SelectItem>
-                  <SelectItem value="AU">Australia</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Payment Method */}
-          <Card className="bg-dark-800 border-dark-700">
-          <CardHeader>
-            <CardTitle>Payment Method</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {paymentMethods.map((method) => (
-              <div
-                key={method.id}
-                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedPaymentMethod === method.id
-                      ? "border-yellow-500 bg-yellow-500 text-black"
-                      : "border-gray-200 hover:border-gray-300 bg-transparent text-white"
-                }`}
-                onClick={() => setSelectedPaymentMethod(method.id)}
-              >
-                <div className="flex items-center space-x-3">
-                  {method.type === "card" && <CreditCard className="h-5 w-5" />}
-                  {method.type === "manual" && <Clock className="h-5 w-5" />}
-                  <div>
-                      <div className={`font-medium ${selectedPaymentMethod === method.id ? 'text-black' : 'text-white'}`}>{method.name}</div>
-                      <div className={`text-sm ${selectedPaymentMethod === method.id ? 'text-black/80' : 'text-gray-400'}`}>{method.description}</div>
-                  </div>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value={method.id}
-                    checked={selectedPaymentMethod === method.id}
-                    onChange={() => setSelectedPaymentMethod(method.id)}
-                    className="ml-auto"
+          <Card className="bg-white border border-gray-200 rounded-3xl shadow-lg overflow-hidden">
+            <CardHeader className="bg-gray-50 border-b border-gray-100 px-8 py-6">
+              <CardTitle className="text-2xl font-light text-gray-900 tracking-tight flex items-center gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Shipping Address
+              </CardTitle>
+              <p className="text-gray-600 mt-2 font-light">Where should we deliver your order?</p>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
+                  <Input
+                    id="firstName"
+                    value={shippingAddress.firstName}
+                    onChange={(e) => handleAddressChange("firstName", e.target.value)}
+                    required
+                    className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    value={shippingAddress.lastName}
+                    onChange={(e) => handleAddressChange("lastName", e.target.value)}
+                    required
+                    className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   />
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={shippingAddress.email}
+                  onChange={(e) => handleAddressChange("email", e.target.value)}
+                  required
+                  className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                <Input
+                  id="phone"
+                  value={shippingAddress.phone}
+                  onChange={(e) => handleAddressChange("phone", e.target.value)}
+                  className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address1" className="text-sm font-medium text-gray-700">Street Address</Label>
+                <Input
+                  id="address1"
+                  value={shippingAddress.address1}
+                  onChange={(e) => handleAddressChange("address1", e.target.value)}
+                  required
+                  className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address2" className="text-sm font-medium text-gray-700">Apartment, suite, etc. (optional)</Label>
+                <Input
+                  id="address2"
+                  value={shippingAddress.address2}
+                  onChange={(e) => handleAddressChange("address2", e.target.value)}
+                  className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="city" className="text-sm font-medium text-gray-700">City</Label>
+                  <Input
+                    id="city"
+                    value={shippingAddress.city}
+                    onChange={(e) => handleAddressChange("city", e.target.value)}
+                    required
+                    className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="state" className="text-sm font-medium text-gray-700">State</Label>
+                  <Input
+                    id="state"
+                    value={shippingAddress.state}
+                    onChange={(e) => handleAddressChange("state", e.target.value)}
+                    required
+                    className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="zipCode" className="text-sm font-medium text-gray-700">ZIP Code</Label>
+                  <Input
+                    id="zipCode"
+                    value={shippingAddress.zipCode}
+                    onChange={(e) => handleAddressChange("zipCode", e.target.value)}
+                    required
+                    className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="country" className="text-sm font-medium text-gray-700">Country</Label>
+                <Select value={shippingAddress.country} onValueChange={(value) => handleAddressChange("country", value)}>
+                  <SelectTrigger className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="US">United States</SelectItem>
+                    <SelectItem value="CA">Canada</SelectItem>
+                    <SelectItem value="GB">United Kingdom</SelectItem>
+                    <SelectItem value="AU">Australia</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+        {/* Payment Method */}
+          <Card className="bg-white border border-gray-200 rounded-3xl shadow-lg overflow-hidden">
+            <CardHeader className="bg-gray-50 border-b border-gray-100 px-8 py-6">
+              <CardTitle className="text-2xl font-light text-gray-900 tracking-tight flex items-center gap-3">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                Payment Method
+              </CardTitle>
+              <p className="text-gray-600 mt-2 font-light">Choose how you'd like to pay</p>
+            </CardHeader>
+            <CardContent className="p-8 space-y-4">
+              {paymentMethods.map((method) => (
+                <div
+                  key={method.id}
+                  className={`p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${
+                    selectedPaymentMethod === method.id
+                        ? "border-yellow-500 bg-yellow-50 shadow-lg"
+                        : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-md"
+                  }`}
+                  onClick={() => setSelectedPaymentMethod(method.id)}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      selectedPaymentMethod === method.id 
+                        ? 'border-yellow-500 bg-yellow-500' 
+                        : 'border-gray-300'
+                    }`}>
+                      {selectedPaymentMethod === method.id && (
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-3 flex-1">
+                      {method.type === "card" && <CreditCard className="h-6 w-6 text-gray-600" />}
+                      {method.type === "manual" && <Clock className="h-6 w-6 text-gray-600" />}
+                      <div className="flex-1">
+                          <div className={`font-medium text-lg ${selectedPaymentMethod === method.id ? 'text-yellow-700' : 'text-gray-900'}`}>{method.name}</div>
+                          <div className={`text-sm ${selectedPaymentMethod === method.id ? 'text-yellow-600' : 'text-gray-600'}`}>{method.description}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
         {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
+          <Alert variant="destructive" className="border-red-200 bg-red-50 rounded-2xl">
+            <AlertDescription className="text-red-800 font-medium">{error}</AlertDescription>
           </Alert>
         )}
 
         {!showStripeForm && (
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              "Place Order"
-            )}
-          </Button>
+          <div className="pt-6">
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="w-full h-14 text-lg font-medium bg-yellow-500 hover:bg-yellow-600 text-black rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                  Processing Your Order...
+                </>
+              ) : (
+                "Place Order"
+              )}
+            </Button>
+            <p className="text-center text-sm text-gray-500 mt-3">
+              By placing your order, you agree to our terms of service and privacy policy
+            </p>
+          </div>
         )}
       </form>
       </div>
@@ -474,21 +502,64 @@ export const EnhancedCheckoutForm = () => {
       {/* Stripe Payment Form (now at the very bottom of the checkout section) */}
       {showStripeForm && clientSecret && (
         <div className="w-full md:w-2/3 mx-auto mt-8">
-          <Card className="bg-dark-800 border-dark-700">
-          <CardHeader>
-            <CardTitle>Complete Payment</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StripePaymentForm
-              clientSecret={clientSecret}
-              onSuccess={handleStripeSuccess}
-              onError={handleStripeError}
-                amount={calculateTotal() * 100}
-                isProcessing={stripeProcessing}
-                setIsProcessing={setStripeProcessing}
-            />
-          </CardContent>
-        </Card>
+          <Card className="bg-white border border-gray-200 rounded-3xl shadow-lg overflow-hidden">
+            <CardHeader className="bg-gray-50 border-b border-gray-100 px-8 py-6">
+              <CardTitle className="text-2xl font-light text-gray-900 tracking-tight flex items-center gap-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Complete Payment
+              </CardTitle>
+              <p className="text-gray-600 mt-2 font-light">Enter your payment details to complete your order</p>
+            </CardHeader>
+            <CardContent className="p-8">
+              <StripePaymentForm
+                clientSecret={clientSecret}
+                onSuccess={handleStripeSuccess}
+                onError={handleStripeError}
+                  amount={calculateTotal() * 100}
+                  isProcessing={stripeProcessing}
+                  setIsProcessing={setStripeProcessing}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Order Confirmation Step */}
+      {showConfirmation && orderDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">
+                Order Confirmed! 🎉
+              </h2>
+              
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Your order has been received and is being processed. You'll receive a confirmation email at{" "}
+                <span className="font-medium">{orderDetails.email}</span> with payment instructions.
+              </p>
+              
+              <div className="bg-gray-50 rounded-2xl p-4 mb-6">
+                <p className="text-sm text-gray-600">
+                  <strong>Order Summary:</strong> {orderDetails.items.length} item(s)
+                </p>
+              </div>
+              
+              <Button
+                onClick={() => {
+                  clearCart()
+                  setShowConfirmation(false)
+                  router.push(`/crypto-payment?email=${encodeURIComponent(orderDetails.email)}`)
+                }}
+                className="w-full font-medium py-4 px-8 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-black text-lg"
+              >
+                View Order Details
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </>

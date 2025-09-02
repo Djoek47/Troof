@@ -29,7 +29,7 @@ export async function GET() {
     // Always include manual processing as fallback
     methods.push({
       id: "manual",
-      name: "Manual Processing",
+      name: "Crypto Payment",
       description: "Create order for manual payment processing",
       type: "manual",
       enabled: true,
@@ -44,7 +44,7 @@ export async function GET() {
         methods: [
           {
             id: "manual",
-            name: "Manual Processing",
+            name: "Crypto Payment",
             description: "Create order for manual payment processing",
             type: "manual",
             enabled: true,

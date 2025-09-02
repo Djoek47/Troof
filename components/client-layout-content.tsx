@@ -9,8 +9,9 @@ import { Logo } from "@/components/logo";
 import { CustomCursor } from "@/components/custom-cursor";
 import Image from "next/image"; // Assuming Image might be used in footer/logo
 import Link from "next/link"; // Assuming Link might be used in footer/logo
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/context/cart-context";
+import { usePathname } from "next/navigation";
 
 // Import the client object - adjust path if necessary based on where it's defined relative to this file
 // If client is defined in app/layout.tsx and exported, this import should work: 
@@ -44,14 +45,19 @@ function WalletCartSync() {
 }
 
 export default function ClientLayoutContent({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isCheckoutPage = pathname.startsWith('/checkout');
+
   return (
     <ThirdwebProvider>
       <CartProvider>
         <WalletCartSync />
         <SplashScreen />
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
-          <Logo />
-        </div>
+        {!isCheckoutPage && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
+            <Logo />
+          </div>
+        )}
         {children}
         <footer className="w-full py-6 px-4 bg-dark-600 text-gray-400 border-t border-yellow-500/20">
           <div className="container mx-auto text-center">
@@ -59,7 +65,7 @@ export default function ClientLayoutContent({ children }: { children: ReactNode 
             <div className="flex items-center justify-center">
               <span className="text-xs text-gray-500 mr-2">Powered by</span>
               <Link
-                href="https://faberland.vercel.app/"
+                href="https://www.faber.land/"
                 className="flex items-center hover:opacity-80 transition-opacity"
               >
                 <div className="relative w-6 h-6">

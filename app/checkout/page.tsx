@@ -7,6 +7,7 @@ import { EnhancedCheckoutForm } from "@/components/checkout/enhanced-checkout-fo
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, ShoppingCart, Shield } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function CheckoutPage() {
   const { state } = useCart()
@@ -70,7 +71,40 @@ export default function CheckoutPage() {
     console.log(`[Checkout] Processing item:`, item)
     console.log(`[Checkout] Printify products count:`, printifyProducts.length)
     
-    // ALWAYS prioritize Printify data over any item data when available
+    // PRIORITY 1: Use stored variant image for color accuracy (this ensures the correct color is shown)
+    if (item.variantImage) {
+      console.log(`[Checkout] Using stored variant image for color accuracy:`, item.variantImage)
+      const product = printifyProducts[item.id - 1]
+      if (product) {
+        // Use Printify name and price, but keep the variant image for color accuracy
+        const variant = product.variants?.find((v: any) => v.is_enabled) || product.variants?.[0];
+        let price = variant?.price || 0;
+        
+        // Convert price from cents to dollars if needed
+        if (price > 1000) {
+          price = price / 100;
+        }
+        
+        return {
+          name: product.name,
+          price: price,
+          size: item.size,
+          color: item.color,
+          image: item.variantImage, // Keep the variant image for color accuracy
+        };
+      } else {
+        // Fallback to item data if no Printify product found
+        return {
+          name: item.name,
+          image: item.variantImage,
+          price: item.price,
+          size: item.size,
+          color: item.color,
+        }
+      }
+    }
+    
+    // PRIORITY 2: Fallback to Printify data when no variant image is available
     const product = printifyProducts[item.id - 1]
     if (product) {
       console.log(`[Checkout] Found Printify product for ID ${item.id}:`, product);
@@ -98,22 +132,11 @@ export default function CheckoutPage() {
         size: item.size,
         color: item.color,
         // Use Printify image if available, otherwise fallback
-        image: product.images?.[0]?.src || item.variantImage || "/placeholder.svg",
+        image: product.images?.[0]?.src || "/placeholder.svg",
       };
     }
     
-    // If we have a variant image stored, use it (this ensures color accuracy)
-    if (item.variantImage) {
-      console.log(`[Checkout] Using stored variant image:`, item.variantImage)
-      return {
-        name: item.name,
-        image: item.variantImage,
-        price: item.price,
-        size: item.size,
-        color: item.color,
-      }
-    }
-    
+    // PRIORITY 3: Final fallback to item data
     console.log(`[Checkout] No Printify product found, using fallback`)
     return { name: item.name, image: item.image1, price: item.price, size: item.size, color: item.color }
   }
@@ -144,7 +167,8 @@ export default function CheckoutPage() {
         
         <div className="flex flex-col lg:flex-row gap-12 items-start">
           {/* Left: Order Summary Sidebar */}
-          <div className="bg-white border border-gray-200 rounded-3xl p-8 w-full lg:w-2/5 max-w-md shadow-xl">
+          <div className="bg-white border border-gray-200 rounded-3xl p-8 w-full lg:w-1/3 max-w-md shadow-xl relative overflow-hidden">
+            
             <h2 className="text-2xl font-light text-gray-900 mb-8 tracking-tight">Your Order</h2>
           {isLoadingProducts ? (
             <div className="space-y-6 mb-8 animate-pulse">
@@ -172,7 +196,9 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate text-lg">{info.name}</h3>
+                        <Link href={`/product/${item.id}`}>
+                          <h3 className="font-medium text-gray-900 truncate text-lg hover:text-yellow-600 transition-colors cursor-pointer">{info.name}</h3>
+                        </Link>
                         <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                         {item.size && <p className="text-xs text-gray-500 mt-1">Size: {item.size}</p>}
                         {item.color && <p className="text-xs text-gray-500 mt-0.5">Color: {item.color}</p>}
@@ -213,12 +239,33 @@ export default function CheckoutPage() {
       </div>
 
         {/* Right: Shipping/Payment Form (dominant) */}
-        <div className="flex-1 flex flex-col gap-8">
-          <div className="bg-white border border-gray-200 rounded-3xl p-8 w-full shadow-xl">
-            <h1 className="text-3xl font-light text-gray-900 mb-8 flex items-center gap-4 tracking-tight">
-              <Shield className="w-5 h-5 text-green-600" />
-              Secure Checkout
-            </h1>
+        <div className="flex-1 flex flex-col gap-8 relative">
+          {/* Proof of Concept Logo - Subtle Background Element */}
+          <div className="absolute top-8 right-8 opacity-5 pointer-events-none z-0">
+            <div className="relative w-24 h-24">
+              <Image 
+                src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                alt="Proof of Concept" 
+                fill 
+                className="object-contain" 
+              />
+            </div>
+          </div>
+          
+          <div className="bg-white border border-gray-200 rounded-3xl p-8 w-full shadow-xl relative z-10">
+            <div className="text-center mb-12">
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center shadow-lg">
+                  <Shield className="w-8 h-8 text-green-600" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-light text-gray-900 mb-4 tracking-tight">
+                Secure Checkout
+              </h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                Your information is protected with bank-level security. Complete your purchase with confidence.
+              </p>
+            </div>
             <EnhancedCheckoutForm />
           </div>
         </div>
