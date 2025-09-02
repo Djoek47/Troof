@@ -21,7 +21,38 @@ export default function Home() {
         const res = await fetch("/api/printify-products")
         if (!res.ok) throw new Error("Failed to fetch products")
         const data = await res.json()
-        setProducts(data)
+        
+        // Randomize the color display for each page load - only use main product images
+        const randomizedData = data.map((product: any) => {
+          if (product.images && product.images.length > 1) {
+            // Filter to only main product images (not folded, reversed, behind, etc.)
+            const mainImages = product.images.filter((img: any) => {
+              const position = img.position?.toLowerCase() || ''
+              // Only include front-facing, main product shots
+              return position === 'front' || 
+                     position === 'main' || 
+                     position === 'default' ||
+                     !position || // If no position specified, assume it's main
+                     (img.is_default && (position === 'front' || !position))
+            })
+            
+            if (mainImages.length > 0) {
+              // Randomly select from main images only
+              const randomImageIndex = Math.floor(Math.random() * mainImages.length)
+              const randomImage = mainImages[randomImageIndex]
+              
+              return {
+                ...product,
+                image: randomImage.src, // Use random main image as default
+                defaultImageIndex: randomImageIndex, // Store which image we're showing
+                availableMainImages: mainImages // Store for future reference
+              }
+            }
+          }
+          return product
+        })
+        
+        setProducts(randomizedData)
       } catch (e: any) {
         setError(e.message || "Failed to load products")
       } finally {
@@ -72,24 +103,84 @@ export default function Home() {
 
   return (
     <CartWrapper>
-      <main id="main-content" className="flex min-h-screen flex-col items-center justify-between">
+      <main id="main-content" className="flex min-h-screen flex-col items-center justify-between bg-white">
         <AutoSliderBanner />
 
         {/* Product Section */}
-        <section id="product-section" className="w-full py-12 md:py-24 bg-dark-900">
-          <div className="container mx-auto px-4">
-            <h2 className="mb-8 text-3xl font-bold text-center text-gray-100 relative z-20">Metaverse Collection</h2>
+        <section id="product-section" className="w-full py-16 md:py-32 bg-gradient-to-b from-gray-50 to-white">
+          <div className="container mx-auto px-6 max-w-7xl">
+                         <div className="text-center mb-16 relative">
+               {/* Left Proof of Concept Logo */}
+               <div className="absolute left-0 top-1/2 transform -translate-y-1/2 hidden lg:block">
+                 <div className="relative w-24 h-24 opacity-60">
+                   <Image 
+                     src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                     alt="Proof of Concept" 
+                     fill 
+                     className="object-contain" 
+                   />
+                 </div>
+               </div>
+               
+               {/* Right Proof of Concept Logo */}
+               <div className="absolute right-0 top-1/2 transform -translate-y-1/2 hidden lg:block">
+                 <div className="relative w-24 h-24 opacity-60">
+                   <Image 
+                     src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                     alt="Proof of Concept" 
+                     fill 
+                     className="object-contain" 
+                   />
+                 </div>
+               </div>
+               
+               {/* Mobile Proof of Concept Logos */}
+               <div className="flex justify-center items-center gap-8 mb-6 lg:hidden">
+                 <div className="relative w-16 h-16 opacity-60">
+                   <Image 
+                     src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                     alt="Proof of Concept" 
+                     fill 
+                     className="object-contain" 
+                   />
+                 </div>
+                 <div className="relative w-16 h-16 opacity-60">
+                   <Image 
+                     src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                     alt="Proof of Concept" 
+                     fill 
+                     className="object-contain" 
+                   />
+                 </div>
+               </div>
+               
+               <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-6 tracking-tight">
+                 Proof of Concept Collection
+               </h2>
+               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                 Premium merchandise that bridges the digital and physical worlds
+               </p>
+             </div>
+            
             {loading ? (
-              <div className="text-center text-gray-300">Loading products...</div>
+              <div className="text-center py-20">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                <p className="mt-4 text-gray-600 text-lg">Loading products...</p>
+              </div>
             ) : error ? (
-              <div className="text-center text-red-500">{error}</div>
+              <div className="text-center py-20">
+                <p className="text-red-500 text-lg">{error}</p>
+              </div>
             ) : (
               <>
                 {Object.entries(categorized).map(([category, items]) =>
                   items.length > 0 ? (
-                    <div key={category} className="mb-12">
-                      <h3 className="text-2xl font-semibold text-yellow-400 mb-4 text-left pl-2">{category}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div key={category} className="mb-20">
+                      <div className="flex items-center justify-between mb-8">
+                        <h3 className="text-2xl font-medium text-gray-900">{category}</h3>
+                        <div className="h-px flex-1 bg-gradient-to-r from-gray-300 to-transparent ml-6"></div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                         {items.map((product) => (
                           <HoodieCard key={product.id} {...product} />
                         ))}
@@ -103,26 +194,76 @@ export default function Home() {
         </section>
 
         {/* Brand Accent Section */}
-        <section className="w-full py-16 bg-dark-800 relative z-20">
-          <div className="container mx-auto px-4 text-center">
-            <div className="inline-block p-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg mb-8">
-              <h3 className="text-2xl font-bold bg-dark-900 px-6 py-3 rounded-md">Metaverse to Reality</h3>
+        <section className="w-full py-24 bg-gray-900 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black"></div>
+          <div className="container mx-auto px-6 max-w-4xl relative z-10 text-center">
+            {/* Left Faberland Logo */}
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 hidden lg:block">
+              <div className="relative w-20 h-20 opacity-40">
+                <Image 
+                  src="/v1-logo.png" 
+                  alt="Faberland" 
+                  fill 
+                  className="object-contain" 
+                />
+              </div>
             </div>
-            <p className="max-w-2xl mx-auto text-gray-300 mb-8">
+            
+            {/* Right Faberland Logo */}
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 hidden lg:block">
+              <div className="relative w-20 h-20 opacity-40">
+                <Image 
+                  src="/v1-logo.png" 
+                  alt="Faberland" 
+                  fill 
+                  className="object-contain" 
+                />
+              </div>
+            </div>
+            
+            {/* Mobile Faberland Logos */}
+            <div className="flex justify-center items-center gap-8 mb-6 lg:hidden">
+              <div className="relative w-12 h-12 opacity-60">
+                <Image 
+                  src="/v1-logo.png" 
+                  alt="Faberland" 
+                  fill 
+                  className="object-contain" 
+                />
+              </div>
+              <div className="relative w-12 h-12 opacity-60">
+                <Image 
+                  src="/v1-logo.png" 
+                  alt="Faberland" 
+                  fill 
+                  className="object-contain" 
+                />
+              </div>
+            </div>
+            
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full mb-8 shadow-2xl">
+              <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="text-3xl md:text-4xl font-light text-white mb-6 tracking-tight">
+              Metaverse to Reality
+            </h3>
+            <p className="text-xl text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto">
               Bring your Faberland identity into the real world with our premium merchandise. Each piece connects to
               your digital assets in the metaverse.
             </p>
-            <div className="flex justify-center gap-4">
-              <div className="w-16 h-1 bg-yellow-500 rounded-full"></div>
-              <div className="w-4 h-1 bg-yellow-500/50 rounded-full"></div>
-              <div className="w-2 h-1 bg-yellow-500/30 rounded-full"></div>
+            <div className="flex justify-center items-center gap-6">
+              <div className="w-20 h-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"></div>
+              <div className="w-12 h-1 bg-yellow-400/60 rounded-full"></div>
+              <div className="w-6 h-1 bg-yellow-400/40 rounded-full"></div>
             </div>
           </div>
         </section>
 
-        {/* Second Banner Section - Fixed */}
-        <section className="w-full bg-dark-900 relative">
-          <div className="h-[500px] w-full relative overflow-hidden">
+        {/* Hero Video Section */}
+        <section className="w-full bg-black relative">
+          <div className="h-[600px] w-full relative overflow-hidden">
             {/* Video Background */}
             <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
               <source
@@ -144,43 +285,144 @@ export default function Home() {
             </div>
 
             {/* Content Overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center p-6 z-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-center">
-                Connect Your Digital Identity
-              </h2>
-              <p className="text-lg text-gray-300 mb-6 text-center max-w-2xl">
-                Unlock exclusive in-game items and experiences with every purchase
-              </p>
-              <Link href="https://faberland.vercel.app/">
-                <Button className="bg-yellow-500 hover:bg-yellow-600 text-dark-900">Explore Faberland</Button>
-              </Link>
+            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-8 z-10">
+              {/* Left Faberland Logo */}
+              <div className="absolute left-8 top-1/2 transform -translate-y-1/2 hidden lg:block">
+                <div className="relative w-20 h-20 opacity-40">
+                  <Image 
+                    src="/v1-logo.png" 
+                    alt="Faberland" 
+                    fill 
+                    className="object-contain" 
+                  />
+                </div>
+              </div>
+              
+              {/* Right Faberland Logo */}
+              <div className="absolute right-8 top-1/2 transform -translate-y-1/2 hidden lg:block">
+                <div className="relative w-20 h-20 opacity-40">
+                  <Image 
+                    src="/v1-logo.png" 
+                    alt="Faberland" 
+                    fill 
+                    className="object-contain" 
+                  />
+                </div>
+              </div>
+              
+              <div className="text-center max-w-4xl mx-auto">
+                {/* Mobile Faberland Logos */}
+                <div className="flex justify-center items-center gap-8 mb-6 lg:hidden">
+                  <div className="relative w-12 h-12 opacity-60">
+                    <Image 
+                      src="/v1-logo.png" 
+                      alt="Faberland" 
+                      fill 
+                      className="object-contain" 
+                    />
+                  </div>
+                  <div className="relative w-12 h-12 opacity-60">
+                    <Image 
+                      src="/v1-logo.png" 
+                      alt="Faberland" 
+                      fill 
+                      className="object-contain" 
+                    />
+                  </div>
+                </div>
+                
+                <h2 className="text-4xl md:text-6xl font-light text-white mb-6 tracking-tight">
+                  Connect Your Digital Identity
+                </h2>
+                <p className="text-xl md:text-2xl text-gray-200 mb-10 leading-relaxed max-w-3xl mx-auto">
+                  Unlock exclusive in-game items and experiences with every purchase
+                </p>
+                <Link href="https://faberland.vercel.app/">
+                  <Button className="bg-white hover:bg-gray-100 text-black px-8 py-4 text-lg font-medium rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105">
+                    Explore Faberland
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Metaverse Connection Section */}
-        <section className="w-full py-16 bg-dark-800 relative z-20">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="md:w-1/2">
-                <h3 className="text-2xl font-bold mb-4 text-yellow-500">Connect Your Digital Identity</h3>
-                <p className="text-gray-300 mb-6">
-                  Each Faberstore item comes with a unique QR code that connects to your Faberland avatar. Unlock
+        <section className="w-full py-24 bg-white">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
+              <div className="lg:w-1/2 relative">
+                {/* Left Proof of Concept Logo */}
+                <div className="absolute -left-8 -top-8 hidden lg:block">
+                  <div className="relative w-16 h-16 opacity-30">
+                    <Image 
+                      src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                      alt="Proof of Concept" 
+                      fill 
+                      className="object-contain" 
+                    />
+                  </div>
+                </div>
+                
+                {/* Mobile Proof of Concept Logos */}
+                <div className="flex justify-center items-center gap-6 mb-6 lg:hidden">
+                  <div className="relative w-12 h-12 opacity-60">
+                    <Image 
+                      src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                      alt="Proof of Concept" 
+                      fill 
+                      className="object-contain" 
+                    />
+                  </div>
+                  <div className="relative w-12 h-12 opacity-60">
+                    <Image 
+                      src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                      alt="Proof of Concept" 
+                      fill 
+                      className="object-contain" 
+                    />
+                  </div>
+                </div>
+                
+                <h3 className="text-3xl md:text-4xl font-light text-gray-900 mb-6 tracking-tight">
+                  Connect Your Digital Identity
+                </h3>
+                <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                  Each Proof of Concept item comes with a unique QR code that connects to your Faberland avatar. Unlock
                   exclusive in-game items and experiences with your purchase.
                 </p>
                 <Link href="https://faberland.vercel.app/">
-                  <Button className="bg-yellow-500 hover:bg-yellow-600 text-dark-900">Learn More</Button>
+                  <Button className="bg-gray-900 hover:bg-black text-white px-8 py-4 text-lg font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    Learn More
+                  </Button>
                 </Link>
               </div>
-              <div className="md:w-1/2 bg-dark-700 p-6 rounded-lg border border-yellow-500/20">
-                <div className="aspect-video relative overflow-hidden rounded-md flex items-center justify-center">
-                  <Image
-                    src="/gpt.PNG"
-                    alt="Metastore GPT"
-                    fill
-                    className="object-contain"
-                    priority
-                  />
+              <div className="lg:w-1/2 relative">
+                {/* Right Proof of Concept Logo */}
+                <div className="absolute -right-8 -top-8 hidden lg:block">
+                  <div className="relative w-16 h-16 opacity-30">
+                    <Image 
+                      src="/Minimal_-_Artboard_2-removebg-preview.png" 
+                      alt="Proof of Concept" 
+                      fill 
+                      className="object-contain" 
+                    />
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl transform rotate-3"></div>
+                  <div className="relative bg-white p-8 rounded-3xl shadow-2xl border border-gray-100">
+                    <div className="aspect-video relative overflow-hidden rounded-2xl flex items-center justify-center bg-gray-50">
+                      <Image
+                        src="/gpt.PNG"
+                        alt="Metastore GPT"
+                        fill
+                        className="object-contain"
+                        priority
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

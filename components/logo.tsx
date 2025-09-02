@@ -29,7 +29,7 @@ export function Logo() {
         opacity: blurAmount > 0 ? Math.max(0.6, 1 - blurAmount / 10) : 1,
       }}
     >
-      <Image src="/logo.png" alt="Faberstore" fill className="object-contain" priority />
+              <Image src="/logo.png" alt="Faberstore" fill className="object-contain" priority />
     </div>
   )
 }

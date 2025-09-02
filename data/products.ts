@@ -16,7 +16,7 @@ export const hoodies: ProductItem[] = [
     name: "Faberland Classic Hoodie",
     price: 149.99,
     image1: "https://i.imgur.com/YFRVFDX.jpg",
-    image2: "https://i.imgur.com/S5WuVkN.jpg",
+    image2: "https://i.imgur.com/YFRVFDX.jpg",
     printifyId: "686061bf115d268c1d0f2b08", // Real Printify product ID
   },
   {
@@ -24,7 +24,7 @@ export const hoodies: ProductItem[] = [
     name: "Metaverse Explorer Hoodie",
     price: 154.99,
     image1: "https://i.imgur.com/YFRVFDX.jpg",
-    image2: "https://i.imgur.com/S5WuVkN.jpg",
+    image2: "https://i.imgur.com/YFRVFDX.jpg",
     printifyId: "686061bb115d268c1d0f2b02", // Real Printify product ID
   },
   {
@@ -32,7 +32,7 @@ export const hoodies: ProductItem[] = [
     name: "Digital Realm Hoodie",
     price: 159.99,
     image1: "https://i.imgur.com/YFRVFDX.jpg",
-    image2: "https://i.imgur.com/S5WuVkN.jpg",
+    image2: "https://i.imgur.com/YFRVFDX.jpg",
     printifyId: "686061b9115d268c1d0f2afd", // Real Printify product ID
   },
   {
@@ -40,8 +40,96 @@ export const hoodies: ProductItem[] = [
     name: "Faberland Limited Edition",
     price: 199.99,
     image1: "https://i.imgur.com/YFRVFDX.jpg",
-    image2: "https://i.imgur.com/S5WuVkN.jpg",
+    image2: "https://i.imgur.com/YFRVFDX.jpg",
     printifyId: "686061b7115d268c1d0f2af6", // Real Printify product ID
+  },
+  {
+    id: 5,
+    name: "Oversized Boxy Tee",
+    price: 30.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 6,
+    name: "Yellow Cotton Tee",
+    price: 30.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 7,
+    name: "Green Cotton Tee",
+    price: 30.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 8,
+    name: "Hooded Sweatshirt",
+    price: 60.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 9,
+    name: "Unisex Heavy Blend",
+    price: 60.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 10,
+    name: "Graphic Hoodie",
+    price: 60.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "686061b5115d268c1d0f2af0", // Real Printify product ID
+  },
+  {
+    id: 11,
+    name: "Hoodie",
+    price: 60.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 12,
+    name: "Dad Cap",
+    price: 25.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 13,
+    name: "Skate Cap",
+    price: 25.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 14,
+    name: "Branded Baseball Cap",
+    price: 25.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
+  },
+  {
+    id: 15,
+    name: "Embroidered Baseball Cap",
+    price: 25.00,
+    image1: "/placeholder.svg",
+    image2: "/placeholder.svg",
+    printifyId: "placeholder", // Add real Printify ID when available
   },
 ];
 

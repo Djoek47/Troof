@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
       
       // Analyze variants in detail
       const variantAnalysis = product.variants.map(variant => {
-        const sizeOption = product.options.find(opt => opt.type === 'size' || opt.name.toLowerCase().includes('size'))
-        const colorOption = product.options.find(opt => opt.type === 'color' || opt.name.toLowerCase().includes('color'))
+        const sizeOption = product.options.find(opt => opt.type === 'size' || (opt.name && opt.name.toLowerCase().includes('size')))
+        const colorOption = product.options.find(opt => opt.type === 'color' || (opt.name && opt.name.toLowerCase().includes('color')))
         
         let sizeValue = 'Unknown'
         let colorValue = 'Unknown'
@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
             colorValue = colorOpt?.value || 'Unknown'
           } else {
             // Options are array of values
-            const sizeIndex = product.options.findIndex(opt => opt.type === 'size' || opt.name.toLowerCase().includes('size'))
-            const colorIndex = product.options.findIndex(opt => opt.type === 'color' || opt.name.toLowerCase().includes('color'))
+            const sizeIndex = product.options.findIndex(opt => opt.type === 'size' || (opt.name && opt.name.toLowerCase().includes('size')))
+            const colorIndex = product.options.findIndex(opt => opt.type === 'color' || (opt.name && opt.name.toLowerCase().includes('color')))
             sizeValue = (variant as any).options[sizeIndex] || 'Unknown'
             colorValue = (variant as any).options[colorIndex] || 'Unknown'
           }

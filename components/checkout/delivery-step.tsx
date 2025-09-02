@@ -46,23 +46,23 @@ export function DeliveryStep({ onSubmit, onBack, initialData }: DeliveryStepProp
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-6 text-gray-100">Delivery Method</h2>
+      <h2 className="text-2xl font-light mb-8 text-gray-900 tracking-tight">Delivery Method</h2>
 
-      <div className="space-y-4 mb-8">
+      <div className="space-y-6 mb-8">
         {shippingMethods.map((method) => (
           <div
             key={method.id}
-            className={`p-4 border rounded-md cursor-pointer transition-colors ${
+            className={`p-6 border rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-md ${
               selectedMethod === method.id
-                ? "border-yellow-500 bg-yellow-500/10"
-                : "border-gray-600 hover:border-gray-500"
+                ? "border-yellow-500 bg-yellow-50 shadow-lg"
+                : "border-gray-200 hover:border-gray-300 bg-white"
             }`}
             onClick={() => setSelectedMethod(method.id)}
           >
             <div className="flex items-center">
               <div
-                className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
-                  selectedMethod === method.id ? "border-yellow-500 bg-yellow-500 text-dark-900" : "border-gray-400"
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 ${
+                  selectedMethod === method.id ? "border-yellow-500 bg-yellow-500 text-white" : "border-gray-300"
                 }`}
               >
                 {selectedMethod === method.id && <CheckCircle className="w-4 h-4" />}
@@ -70,31 +70,31 @@ export function DeliveryStep({ onSubmit, onBack, initialData }: DeliveryStepProp
 
               <div className="flex-grow">
                 <div className="flex justify-between">
-                  <h3 className="font-medium text-gray-100">{method.name}</h3>
-                  <span className="font-medium text-gray-100">${method.price.toFixed(2)}</span>
+                  <h3 className="font-medium text-gray-900 text-lg">{method.name}</h3>
+                  <span className="font-medium text-gray-900 text-lg">${method.price.toFixed(2)}</span>
                 </div>
-                <p className="text-sm text-gray-400">{method.description}</p>
+                <p className="text-sm text-gray-600 mt-1">{method.description}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-4">
-        <button
+      <div className="flex gap-6">
+        <Button
           type="button"
           onClick={onBack}
-          className="flex-1 py-3 bg-dark-700 text-gray-300 font-medium rounded-md hover:bg-dark-600 transition-colors"
+          className="flex-1 font-medium py-4 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-gray-900 hover:bg-black text-white text-lg"
         >
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={handleSubmit}
-          className="flex-1 py-3 bg-yellow-500 text-dark-900 font-medium rounded-md hover:bg-yellow-600 transition-colors"
+          className="flex-1 font-medium py-4 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-white text-lg"
         >
           Continue to Payment
-        </button>
+        </Button>
       </div>
     </div>
   )

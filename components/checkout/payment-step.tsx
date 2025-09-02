@@ -1,6 +1,7 @@
 "use client"
 import { useForm } from "react-hook-form"
 import { CreditCard, Lock } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import type { PaymentDetails } from "@/types/checkout"
 
 interface PaymentStepProps {
@@ -51,33 +52,33 @@ export function PaymentStep({ onSubmit, onBack, initialData }: PaymentStepProps)
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-6 text-gray-100">Payment Information</h2>
+      <h2 className="text-2xl font-light mb-8 text-gray-900 tracking-tight">Payment Information</h2>
 
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center text-gray-300">
-          <Lock className="w-4 h-4 mr-2" />
-          <span className="text-sm">Secure Payment</span>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center text-gray-600">
+          <Lock className="w-5 h-5 mr-3" />
+          <span className="text-base font-medium">Secure Payment</span>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <div className="w-10 h-6 bg-gray-700 rounded"></div>
-          <div className="w-10 h-6 bg-gray-700 rounded"></div>
-          <div className="w-10 h-6 bg-gray-700 rounded"></div>
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-8 bg-gray-200 rounded-lg"></div>
+          <div className="w-12 h-8 bg-gray-200 rounded-lg"></div>
+          <div className="w-12 h-8 bg-gray-200 rounded-lg"></div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
-          <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-300 mb-1">
+          <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-2">
             Card Number *
           </label>
           <div className="relative">
             <input
               id="cardNumber"
               type="text"
-              className={`w-full pl-10 pr-4 py-2 bg-dark-700 border ${
-                errors.cardNumber ? "border-red-500" : "border-gray-600"
-              } rounded-md text-gray-100 focus:outline-none focus:ring-1 focus:ring-yellow-500`}
+              className={`w-full pl-12 pr-4 py-3 bg-white border ${
+                errors.cardNumber ? "border-red-500" : "border-gray-300"
+              } rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200`}
               placeholder="1234 5678 9012 3456"
               {...register("cardNumber", {
                 required: "Card number is required",
@@ -90,38 +91,38 @@ export function PaymentStep({ onSubmit, onBack, initialData }: PaymentStepProps)
                 },
               })}
             />
-            <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            {cardType && <span className="absolute right-3 top-2 text-sm text-gray-400">{cardType}</span>}
+            <CreditCard className="absolute left-4 top-3 h-5 w-5 text-gray-500" />
+            {cardType && <span className="absolute right-4 top-3 text-sm text-gray-500">{cardType}</span>}
           </div>
           {errors.cardNumber && <p className="mt-1 text-sm text-red-500">{errors.cardNumber.message}</p>}
         </div>
 
         <div>
-          <label htmlFor="nameOnCard" className="block text-sm font-medium text-gray-300 mb-1">
+          <label htmlFor="nameOnCard" className="block text-sm font-medium text-gray-700 mb-2">
             Name on Card *
           </label>
           <input
             id="nameOnCard"
             type="text"
-            className={`w-full px-4 py-2 bg-dark-700 border ${
-              errors.nameOnCard ? "border-red-500" : "border-gray-600"
-            } rounded-md text-gray-100 focus:outline-none focus:ring-1 focus:ring-yellow-500`}
+            className={`w-full px-4 py-3 bg-white border ${
+              errors.nameOnCard ? "border-red-500" : "border-gray-300"
+            } rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200`}
             {...register("nameOnCard", { required: "Name on card is required" })}
           />
           {errors.nameOnCard && <p className="mt-1 text-sm text-red-500">{errors.nameOnCard.message}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-2">
               Expiry Date (MM/YY) *
             </label>
             <input
               id="expiryDate"
               type="text"
-              className={`w-full px-4 py-2 bg-dark-700 border ${
-                errors.expiryDate ? "border-red-500" : "border-gray-600"
-              } rounded-md text-gray-100 focus:outline-none focus:ring-1 focus:ring-yellow-500`}
+              className={`w-full px-4 py-3 bg-white border ${
+                errors.expiryDate ? "border-red-500" : "border-gray-300"
+              } rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200`}
               placeholder="MM/YY"
               {...register("expiryDate", {
                 required: "Expiry date is required",
@@ -135,15 +136,15 @@ export function PaymentStep({ onSubmit, onBack, initialData }: PaymentStepProps)
           </div>
 
           <div>
-            <label htmlFor="cvv" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-2">
               CVV *
             </label>
             <input
               id="cvv"
               type="text"
-              className={`w-full px-4 py-2 bg-dark-700 border ${
-                errors.cvv ? "border-red-500" : "border-gray-600"
-              } rounded-md text-gray-100 focus:outline-none focus:ring-1 focus:ring-yellow-500`}
+              className={`w-full px-4 py-3 bg-white border ${
+                errors.cvv ? "border-red-500" : "border-gray-300"
+              } rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200`}
               maxLength={4}
               {...register("cvv", {
                 required: "CVV is required",
@@ -157,20 +158,20 @@ export function PaymentStep({ onSubmit, onBack, initialData }: PaymentStepProps)
           </div>
         </div>
 
-        <div className="pt-4 flex gap-4">
-          <button
+        <div className="pt-6 flex gap-6">
+          <Button
             type="button"
             onClick={onBack}
-            className="flex-1 py-3 bg-dark-700 text-gray-300 font-medium rounded-md hover:bg-dark-600 transition-colors"
+            className="flex-1 font-medium py-4 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-gray-900 hover:bg-black text-white text-lg"
           >
             Back
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className="flex-1 py-3 bg-yellow-500 text-dark-900 font-medium rounded-md hover:bg-yellow-600 transition-colors"
+            className="flex-1 font-medium py-4 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-white text-lg"
           >
             Review Order
-          </button>
+          </Button>
         </div>
       </form>
     </div>

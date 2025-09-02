@@ -13,7 +13,7 @@ type CartAction =
 
 interface CartContextType {
   state: CartState // This state will represent either the local or server cart, including isOpen
-  addItem: (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string }) => Promise<void>
+  addItem: (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string; variantImage?: string }) => Promise<void>
   removeItem: (id: number, variantId?: number, size?: string, color?: string) => Promise<void>
   updateQuantity: (id: number, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
@@ -107,6 +107,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [currentWalletId, localCartItems, serverCartState, isCartOpen]); // Depend on all relevant state pieces
 
+  // Effect to listen for Printify data updates and refresh cart items
+  useEffect(() => {
+    const handlePrintifyUpdate = () => {
+      if (!currentWalletId) {
+        // Refresh local cart items when Printify data is updated
+        const refreshedItems = getLocalCart();
+        setLocalCartItems(refreshedItems);
+        setState(prevState => ({
+          ...prevState,
+          items: refreshedItems
+        }));
+      }
+    };
+
+    window.addEventListener('printify-data-updated', handlePrintifyUpdate);
+    return () => window.removeEventListener('printify-data-updated', handlePrintifyUpdate);
+  }, [currentWalletId]);
+
   // Function to fetch cart from cloud storage (only when wallet is connected)
   const fetchCart = useCallback(async () => {
     if (!currentWalletId) {
@@ -161,7 +179,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [fetchCart, currentWalletId]);
 
   // Function to add item (handles local or server cart)
-  const addItem = async (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string }) => {
+  const addItem = async (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string; variantImage?: string }) => {
     if (!currentWalletId) {
       // Add to local storage cart
       const currentItems = getLocalCart();
@@ -178,10 +196,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
         newItems[existingItemIndex].quantity += item.quantity;
       } else {
         // Need product details for local storage item
-        const productToAdd = hoodies.find(product => product.id === item.id);
-        if (!productToAdd) {
-           console.error(`Product with id ${item.id} not found for local cart.`);
-           return;
+        // Always prioritize Printify data over mock data when available
+        let productToAdd;
+        
+        // Check if we have Printify data for this product
+        if (item.name && item.name !== `Product ${item.id}`) {
+          // Use Printify data if available
+          productToAdd = {
+            id: item.id,
+            name: item.name,
+            price: item.price || 0,
+            image1: item.variantImage || "/placeholder.svg",
+            image2: "/placeholder.svg",
+          };
+        } else {
+          // Fallback to hoodies array or create generic product
+          productToAdd = hoodies.find(product => product.id === item.id);
+          
+          if (!productToAdd) {
+            // If not found in hoodies, create a fallback product for local cart
+            productToAdd = {
+              id: item.id,
+              name: `Product ${item.id}`, // Generic name
+              price: 0, // Will be updated when Printify data is available
+              image1: "/placeholder.svg",
+              image2: "/placeholder.svg",
+            };
+          }
         }
         newItems = [
           ...currentItems,
@@ -228,6 +269,60 @@ export function CartProvider({ children }: { children: ReactNode }) {
         serverCartDispatch({ type: "UPDATE_CART", payload: data });
       } catch (error) {
         console.error("Failed to add item to wallet cart:", error);
+      }
+    }
+  };
+
+  // Function to update local cart items with Printify data
+  const updateLocalCartWithPrintifyData = (printifyProducts: any[]) => {
+    if (!currentWalletId && printifyProducts.length > 0) {
+      const currentItems = getLocalCart();
+      console.log(`[updateLocalCartWithPrintifyData] Current cart items:`, currentItems);
+      console.log(`[updateLocalCartWithPrintifyData] Printify products available:`, printifyProducts.length);
+      
+      if (currentItems.length > 0) {
+        const updatedItems = currentItems.map(item => {
+          const printifyProduct = printifyProducts[item.id - 1];
+          if (printifyProduct) {
+            console.log(`[updateLocalCartWithPrintifyData] Updating item ${item.id}:`, {
+              oldName: item.name,
+              oldPrice: item.price,
+              newName: printifyProduct.name,
+              newPrice: printifyProduct.variants?.[0]?.price
+            });
+            
+            // Completely replace mock data with Printify data
+            const updatedItem = {
+              ...item,
+              name: printifyProduct.name, // Always use Printify name, never fallback to mock
+              price: printifyProduct.variants?.[0]?.price, // Always use Printify price, never fallback to mock
+              // Clear any mock data flags
+              isMockData: false,
+            };
+            
+            console.log(`[updateLocalCartWithPrintifyData] Item ${item.id} updated:`, {
+              before: { name: item.name, price: item.price },
+              after: { name: updatedItem.name, price: updatedItem.price }
+            });
+            
+            return updatedItem;
+          }
+          return item;
+        });
+        
+        // Save updated items to localStorage
+        saveLocalCart(updatedItems);
+        // Update the local cart state
+        setLocalCartItems(updatedItems);
+        
+        // Also update the combined state so all components see the changes
+        setState(prevState => ({
+          ...prevState,
+          items: updatedItems
+        }));
+        
+        console.log('[updateLocalCartWithPrintifyData] Final updated items:', updatedItems);
+        console.log('[updateLocalCartWithPrintifyData] State updated, components should re-render');
       }
     }
   };
@@ -480,6 +575,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localCartItems,
         migrateLocalCartToWallet,
         currentWalletId,
+        updateLocalCartWithPrintifyData,
       }}
     >
       {children}

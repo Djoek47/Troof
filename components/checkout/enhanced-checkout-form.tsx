@@ -168,8 +168,8 @@ export const EnhancedCheckoutForm = () => {
     let colorLabel = undefined;
     if (variant && variant.options && Array.isArray(variant.options) && typeof variant.options[0] === "object") {
       for (const opt of variant.options) {
-        if (opt.name.toLowerCase().includes('size')) sizeLabel = opt.value;
-        if (opt.name.toLowerCase().includes('color')) colorLabel = opt.value;
+        if (opt.name && opt.name.toLowerCase().includes('size')) sizeLabel = opt.value;
+        if (opt.name && opt.name.toLowerCase().includes('color')) colorLabel = opt.value;
       }
     }
     return {

@@ -14,7 +14,26 @@ export async function GET() {
       description: product.description,
       price: product.variants.find(v => v.is_enabled)?.price / 100 || 0,
       image: product.images.find(img => img.is_default)?.src || product.images[0]?.src,
-      variants: product.variants,
+      variants: product.variants.map(variant => ({
+        ...variant,
+        // Include the full variant options for proper color/size matching
+        options: variant.options || [],
+        // Add color and size information if available
+        color: variant.options?.find((opt: any) => 
+          typeof opt === 'object' && opt.name?.toLowerCase().includes('color')
+        )?.value,
+        size: variant.options?.find((opt: any) => 
+          typeof opt === 'object' && opt.name?.toLowerCase().includes('size')
+        )?.value,
+        // Add blueprint_id for better product categorization
+        blueprint_id: variant.blueprint_id,
+        // Add variant-specific image if available
+        image: product.images.find(img => 
+          img.variant_ids.includes(variant.id)
+        )?.src,
+        // Add the original variant data for debugging
+        originalVariant: variant,
+      })),
       images: product.images,
       options: product.options,
     }))

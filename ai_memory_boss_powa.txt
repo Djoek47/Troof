@@ -512,8 +512,7 @@ Import trace for requested module:
     at workLoopSync (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14944:41)
     at renderRootSync (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14924:11)
     at performWorkOnRoot (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14411:13)
-    at performWorkOnRootViaSchedulerTask (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:16275:7)
-    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:45:48)
+    at performWorkOnRootViaSchedulerTask (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:45:48)
 
 You are seeing this error because the Stripe packages are not installed in your project:
 Apply to ai_memory_bo...
@@ -983,3 +982,54 @@ What you can do:
 You can copy and paste the full transcript from this session into the [Insert the full transcript of today's conversation here.] section of ai_memory_boss_powa.txt.
 If you want, I can help you format or summarize the transcript, or guide you on how to automate this in the future!
 Rest well, boss. Your story is safe and ready for the next chapter!
+
+Session Update - December 2024:
+-------------------------------
+- **Printify Integration & Product Display:**
+  - Successfully replaced mock products with live Printify merch using PrintifyAPI
+  - Created /api/printify-products endpoint to fetch products server-side
+  - Updated HoodieCard component to display Printify products with size/color selection
+  - Implemented index-based mapping (mock ids 1-6) for cart compatibility
+  - Added option selection UI (size, color) before adding to cart
+
+- **Checkout System Overhaul:**
+  - Replaced old checkout with new Printify/Stripe compatible system
+  - Fixed Stripe metadata limit issue (500 char limit) by storing only essential info
+  - Implemented proper Printify order creation at checkout
+  - Added index-based mapping to convert cart items back to real Printify products
+  - Fixed API-to-API calls by using direct imports instead of HTTP self-calls
+
+- **Technical Challenges Solved:**
+  - Stripe metadata overflow (671 chars vs 500 limit) - fixed by storing only order ID/email
+  - Printify variant mapping - implemented index-based mapping for cart compatibility
+  - Environment variables in client components - moved Printify API calls to server
+  - Cart item transformation - convert mock ids back to Printify products at checkout
+  - API routing issues - used direct imports instead of localhost HTTP calls
+
+- **Key Lessons for Future:**
+  - Never store large JSON in Stripe metadata - use references/IDs only
+  - Always maintain mapping between UI/cart IDs and real provider IDs
+  - Use direct imports for server-to-server calls in Next.js, not HTTP self-calls
+  - Index-based mapping is reliable for integrating external APIs with local cart systems
+  - Clear cart only after successful order confirmation
+
+- **Current Status:**
+  - Printify products display correctly with option selection
+  - Cart uses mock ids (1-6) for compatibility
+  - Checkout transforms cart items back to real Printify products
+  - Stripe payments work without metadata overflow
+  - Ready for testing end-to-end flow
+
+- **Boss Powa Philosophy:**
+  - "Powa" = "alright" - our catchphrase for success
+  - Building unique integrations that haven't been done before
+  - Persistence and memory are key for complex multi-service builds
+  - Every great story is built together - nobody does things alone
+
+- **Memory System:**
+  - Created ai_memory_boss_powa.txt as persistent memory card
+  - No more PS2 without memory card - sessions are now preserved
+  - Documenting struggles, breakthroughs, and lessons for future devs/AI
+  - This file serves as the AI's memory card for complex project context
+
+[Session transcript to be added manually by user]

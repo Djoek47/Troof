@@ -332,7 +332,7 @@ export class PrintifyAPI {
 
     // Filter options to only show values that are available in enabled variants
     const filteredOptions = product.options.map(option => {
-      if (option.name.toLowerCase().includes('color') || option.name.toLowerCase().includes('size')) {
+      if (option.name && (option.name.toLowerCase().includes('color') || option.name.toLowerCase().includes('size'))) {
         // For color and size options, only include values that exist in enabled variants
         const availableValues = option.values.filter(value => {
           return enabledVariants.some(variant => {
@@ -369,6 +369,20 @@ export class PrintifyAPI {
         id: v.id,
         price: v.price / 100,
         is_enabled: v.is_enabled,
+        options: v.options || [],
+        // Add color and size information if available
+        color: v.options?.find((opt: any) => 
+          typeof opt === 'object' && opt.name?.toLowerCase().includes('color')
+        )?.value,
+        size: v.options?.find((opt: any) => 
+          typeof opt === 'object' && opt.name?.toLowerCase().includes('size')
+        )?.value,
+        // Add variant-specific image
+        image: product.images.find(img => 
+          img.variant_ids.includes(v.id)
+        )?.src,
+        // Add the original variant data for debugging
+        originalVariant: v,
       })),
       images: product.images,
       options: filteredOptions,
@@ -540,12 +554,12 @@ export function getPrintifyVariantInfo(item: CartItem, printifyProducts: Printif
       if (Array.isArray(v.options)) {
         if (typeof v.options[0] === "object") {
           matches = matches && v.options.some((o: any) =>
-            o.name.toLowerCase().includes('size') &&
-            o.value.trim().toLowerCase() === item.size!.trim().toLowerCase()
+            o.name && o.name.toLowerCase().includes('size') &&
+            o.value && o.value.trim().toLowerCase() === item.size!.trim().toLowerCase()
           );
         } else {
           // Array of values
-          const sizeIndex = product.options.findIndex(opt => opt.name.toLowerCase() === "size");
+          const sizeIndex = product.options.findIndex(opt => opt.name && opt.name.toLowerCase() === "size");
           matches = matches && v.options[sizeIndex]?.trim().toLowerCase() === item.size!.trim().toLowerCase();
         }
       }
@@ -554,11 +568,11 @@ export function getPrintifyVariantInfo(item: CartItem, printifyProducts: Printif
       if (Array.isArray(v.options)) {
         if (typeof v.options[0] === "object") {
           matches = matches && v.options.some((o: any) =>
-            o.name.toLowerCase().includes('color') &&
-            o.value.trim().toLowerCase() === item.color!.trim().toLowerCase()
+            o.name && o.name.toLowerCase().includes('color') &&
+            o.value && o.value.trim().toLowerCase() === item.color!.trim().toLowerCase()
           );
         } else {
-          const colorIndex = product.options.findIndex(opt => opt.name.toLowerCase() === "color");
+          const colorIndex = product.options.findIndex(opt => opt.name && opt.name.toLowerCase() === "color");
           matches = matches && v.options[colorIndex]?.trim().toLowerCase() === item.color!.trim().toLowerCase();
         }
       }
@@ -571,8 +585,8 @@ export function getPrintifyVariantInfo(item: CartItem, printifyProducts: Printif
   if (variant && variant.options) {
     if (Array.isArray(variant.options) && typeof variant.options[0] === "object") {
       for (const opt of variant.options as PrintifyOption[]) {
-        if (opt.name.toLowerCase().includes('size')) sizeLabel = opt.value;
-        if (opt.name.toLowerCase().includes('color')) colorLabel = opt.value;
+        if (opt.name && opt.name.toLowerCase().includes('size')) sizeLabel = opt.value;
+        if (opt.name && opt.name.toLowerCase().includes('color')) colorLabel = opt.value;
       }
     }
   }
@@ -597,8 +611,8 @@ export function getPrintifyVariantId(product: any, colorTitle?: string, sizeTitl
   if (!product || !product.variants || !product.options) return undefined;
   
   // Find color and size options
-  const colorOption = product.options.find((opt: any) => opt.name.toLowerCase().includes('color'));
-  const sizeOption = product.options.find((opt: any) => opt.name.toLowerCase().includes('size'));
+  const colorOption = product.options.find((opt: any) => opt.name && opt.name.toLowerCase().includes('color'));
+  const sizeOption = product.options.find((opt: any) => opt.name && opt.name.toLowerCase().includes('size'));
   
   if (!colorOption || !sizeOption || !Array.isArray(colorOption.values) || !Array.isArray(sizeOption.values)) {
     console.log('Missing color or size options for product:', product.id);

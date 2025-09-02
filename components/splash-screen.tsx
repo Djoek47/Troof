@@ -45,7 +45,7 @@ export function SplashScreen() {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[60] flex flex-col items-center justify-center bg-dark-900 transition-opacity duration-500",
+        "fixed inset-0 z-[60] flex flex-col items-center justify-center bg-white transition-opacity duration-500",
         isComplete ? "opacity-0 pointer-events-none" : "opacity-100",
       )}
     >
@@ -54,15 +54,15 @@ export function SplashScreen() {
       </div>
 
       {/* Matrix-style loading text */}
-      <div className="font-mono text-white mb-4 h-6">{`LOADING_METASTORE: ${matrixText}`}</div>
+      <div className="font-mono text-gray-900 mb-4 h-6">{`LOADING_PROOF_OF_CONCEPT: ${matrixText}`}</div>
 
       {/* Progress bar container */}
-      <div className="w-64 h-1 bg-dark-400 rounded-full overflow-hidden">
-        <div className="h-full bg-yellow-500 transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
+      <div className="w-64 h-1 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-full bg-gray-900 transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
       </div>
 
       {/* Progress percentage */}
-      <div className="mt-2 font-mono text-sm text-white">{`${progress}%`}</div>
+      <div className="mt-2 font-mono text-sm text-gray-900">{`${progress}%`}</div>
 
       {/* Visser Studios logo */}
       <Link
@@ -115,24 +115,24 @@ export function ProductSplashScreen() {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[60] flex flex-col items-center justify-center bg-dark-900 transition-opacity duration-500",
+        "fixed inset-0 z-[60] flex flex-col items-center justify-center bg-white transition-opacity duration-500",
         isComplete ? "opacity-0 pointer-events-none" : "opacity-100",
       )}
     >
       <div className="relative w-48 h-48 mb-8">
-        <Image src="/logo.png" alt="Faberproduct" fill className="object-contain" priority />
+        <Image src="/Minimal_-_Artboard_2-removebg-preview.png" alt="Proof of Concept" fill className="object-contain" priority />
       </div>
 
       {/* Matrix-style loading text */}
-      <div className="font-mono text-white mb-4 h-6">{`LOADING_FABERPRODUCT: ${matrixText}`}</div>
+      <div className="font-mono text-gray-900 mb-4 h-6">{`LOADING_PROOF_OF_CONCEPT: ${matrixText}`}</div>
 
       {/* Progress bar container */}
-      <div className="w-64 h-1 bg-dark-400 rounded-full overflow-hidden">
-        <div className="h-full bg-yellow-500 transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
+      <div className="w-64 h-1 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-full bg-gray-900 transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
       </div>
 
       {/* Progress percentage */}
-      <div className="mt-2 font-mono text-sm text-white">{`${progress}%`}</div>
+      <div className="mt-2 font-mono text-sm text-gray-900">{`${progress}%`}</div>
 
       {/* Visser Studios logo */}
       <Link

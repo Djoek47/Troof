@@ -113,12 +113,12 @@ export function CheckoutForm() {
       <div className="max-w-3xl mx-auto bg-dark-800 rounded-lg p-8 text-center">
         <h2 className="text-xl font-semibold mb-4 text-gray-100">Your cart is empty</h2>
         <p className="text-gray-300 mb-6">Add some items to your cart before proceeding to checkout.</p>
-        <button
+        <Button
           onClick={handleBackToShop}
-          className="px-6 py-2 bg-yellow-500 text-dark-900 rounded-md hover:bg-yellow-600 transition-colors"
+          className="font-medium py-3 px-6 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-white"
         >
           Back to Shop
-        </button>
+        </Button>
       </div>
     )
   }

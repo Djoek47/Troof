@@ -57,7 +57,7 @@ export function CheckoutLoading({ isLoading }: CheckoutLoadingProps) {
       )}
     >
       <div className="relative w-48 h-48 mb-8">
-        <Image src="/logo.png" alt="Faberstore" fill className="object-contain" priority />
+        <Image src="/Minimal_-_Artboard_2-removebg-preview.png" alt="Proof of Concept" fill className="object-contain" priority />
       </div>
 
       {/* Matrix-style loading text */}

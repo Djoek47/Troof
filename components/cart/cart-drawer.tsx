@@ -10,7 +10,7 @@ import { calculateCartTotal } from "@/lib/cart"
 
 export function CartDrawer() {
   const router = useRouter()
-  const { state, closeCart, localCartItems, migrateLocalCartToWallet, currentWalletId } = useCart()
+  const { state, closeCart, localCartItems, migrateLocalCartToWallet, currentWalletId, updateLocalCartWithPrintifyData } = useCart()
   const { items, isOpen } = state
 
   const [printifyProducts, setPrintifyProducts] = useState<any[]>([])
@@ -23,6 +23,20 @@ export function CartDrawer() {
         if (!res.ok) throw new Error("Failed to fetch Printify products")
         const data = await res.json()
         setPrintifyProducts(data)
+        
+        // Update local cart items with Printify data when available
+        updateLocalCartWithPrintifyData(data)
+        
+        // Dispatch custom event to notify other components about Printify data update
+        window.dispatchEvent(new CustomEvent('printify-data-updated', { detail: data }))
+        
+        // Force a re-render of the cart drawer to show updated data
+        setPrintifyProducts([...data])
+        
+        // Force a re-render by updating a state variable
+        setTimeout(() => {
+          setPrintifyProducts(prev => [...prev])
+        }, 100)
       } catch (e) {
         setPrintifyProducts([])
       } finally {
@@ -30,15 +44,41 @@ export function CartDrawer() {
       }
     }
     fetchPrintifyProducts()
-  }, [])
+  }, [currentWalletId])
 
   // Calculate total using real Printify prices
   const total = items.reduce((sum, item) => {
     const product = printifyProducts[item.id - 1]
-    if (!product) return sum
+    console.log(`[Cart Drawer] Processing item ${item.id}:`, item);
+    console.log(`[Cart Drawer] Found product:`, product);
+    
+    if (!product) {
+      console.log(`[Cart Drawer] No product found, using fallback price: $${item.price}`);
+      return sum + (item.price * item.quantity)
+    }
+    
     const variant = product.variants.find((v: any) => v.is_enabled) || product.variants[0]
-    const price = variant.price || item.price
-    return sum + price * item.quantity
+    console.log(`[Cart Drawer] Found variant:`, variant);
+    console.log(`[Cart Drawer] Variant price (raw):`, variant?.price);
+    
+    let price;
+    if (variant?.price) {
+      if (variant.price > 1000) {
+        // Likely in cents, convert to dollars
+        price = variant.price / 100;
+        console.log(`[Cart Drawer] Converting cents to dollars: ${variant.price} -> $${price}`);
+      } else {
+        // Already in dollars
+        price = variant.price;
+        console.log(`[Cart Drawer] Price already in dollars: $${price}`);
+      }
+    } else {
+      price = item.price;
+      console.log(`[Cart Drawer] Using fallback price: $${price}`);
+    }
+    
+    console.log(`[Cart Drawer] Final price for item: $${price}`);
+    return sum + (price * item.quantity)
   }, 0)
 
   const showMigrateButton = currentWalletId && localCartItems.length > 0;
@@ -85,32 +125,38 @@ export function CartDrawer() {
       ></div>
 
       {/* Cart drawer */}
-      <div className="relative w-full max-w-md bg-dark-800 shadow-xl flex flex-col h-full">
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-lg font-medium text-gray-100">Your Cart</h2>
-          <button
+      <div className="relative w-full max-w-md bg-white shadow-2xl flex flex-col h-full border-l border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-light text-gray-900 tracking-tight">Your Cart</h2>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={closeCart}
-            className="p-2 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors"
+            className="h-8 w-8 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             aria-label="Close cart"
           >
-            <X className="h-5 w-5 text-dark-900" />
-          </button>
+            <X className="h-4 w-4 text-white" />
+          </Button>
         </div>
 
-        <div className="flex-grow overflow-auto p-4">
+        <div className="flex-grow overflow-auto p-6">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               {showMigrateButton ? (
-                 <p className="text-gray-400 mb-4">Your wallet cart is empty, but you have items in your local cart.</p>
+                 <p className="text-gray-600 mb-6 text-lg">Your wallet cart is empty, but you have items in your local cart.</p>
               ) : (
-                 <p className="text-gray-400 mb-4">Your cart is empty</p>
+                 <p className="text-gray-600 mb-6 text-lg">Your cart is empty</p>
               )}
-              <Button onClick={closeCart} variant="outline">
+              <Button 
+                onClick={closeCart} 
+                className="font-medium py-3 px-8 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-gray-900 hover:bg-black text-white"
+              >
                 Continue Shopping
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {console.log('[CartDrawer] Rendering items:', items)}
               {items.map((item) => (
                 <CartItem key={`${item.id}-${item.size || ''}-${item.color || ''}`} item={item} printifyProducts={printifyProducts} />
               ))}
@@ -118,25 +164,28 @@ export function CartDrawer() {
           )}
         </div>
 
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-6 border-t border-gray-200">
            {showMigrateButton && (
               <Button
                  onClick={migrateLocalCartToWallet}
-                 className="w-full mb-4 bg-green-500 hover:bg-green-600 text-dark-900"
+                 className="w-full mb-6 font-medium py-3 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-green-500 hover:bg-green-600 text-white"
               >
                  Migrate Local Cart to Wallet
               </Button>
            )}
 
           {items.length > 0 && (
-             <div className="flex justify-between mb-4">
-               <span className="text-gray-300">Subtotal</span>
-               <span className="text-gray-100 font-medium">${total.toFixed(2)}</span>
+             <div className="flex justify-between mb-6">
+               <span className="text-gray-600 text-lg">Subtotal</span>
+               <span className="text-gray-900 font-medium text-xl">${total.toFixed(2)}</span>
              </div>
           )}
 
           {items.length > 0 && (
-            <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-dark-900" onClick={handleCheckout}>
+            <Button 
+              className="w-full font-medium py-3 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-white" 
+              onClick={handleCheckout}
+            >
               Checkout
             </Button>
           )}

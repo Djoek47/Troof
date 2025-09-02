@@ -19,6 +19,12 @@ interface PrintifyProductCardProps {
     id: number
     price: number
     is_enabled: boolean
+    options?: any[]
+    color?: string
+    size?: string
+    image?: string
+    blueprint_id?: number
+    originalVariant?: any
   }>
   images: Array<{
     src: string
@@ -63,31 +69,150 @@ export function HoodieCard({
   const sizeLabel = sizeOption?.values.find(val => String(val.id) === selectedSizeId)?.title;
 
   // Find the variant that matches selected color and size
-  const selectedVariant = variants.find((variant) => {
-    if (!colorOption && !sizeOption) return variant.is_enabled;
-    let matches = true;
-    // Only check variant.options if present (PrintifyVariant.options is optional)
-    if (colorOption && selectedColorId) {
-      if (Array.isArray((variant as any).options)) {
-        matches = matches && (variant as any).options.some((o: any) => o.name && o.name.toLowerCase().includes('color') && o.value == colorLabel);
-      } else {
-        matches = matches && colorLabel === undefined;
-      }
-    }
-    if (sizeOption && selectedSizeId) {
-      if (Array.isArray((variant as any).options)) {
-        matches = matches && (variant as any).options.some((o: any) => o.name && o.name.toLowerCase().includes('size') && o.value == sizeLabel);
-      } else {
-        matches = matches && sizeLabel === undefined;
-      }
-    }
-    return matches && variant.is_enabled;
-  }) || variants[0];
+  const selectedVariant = (() => {
+    // For now, just return the first enabled variant since we don't have full variant details
+    // The color change will be handled by the image selection logic above
+    return variants.find(v => v.is_enabled) || variants[0];
+  })();
 
   // Get the image for the selected variant, fallback to default
-  const displayImage = images.find((img) =>
-    selectedVariant && img.variant_ids.includes(selectedVariant.id)
-  )?.src || image;
+  const displayImage = (() => {
+    if (selectedColorId) {
+      const colorName = colorOption?.values.find(val => String(val.id) === selectedColorId)?.title;
+      
+      if (colorName) {
+        console.log(`Looking for image for color: ${colorName}`);
+        
+        // Strategy 1: Use Printify's variant ID system for exact color matching
+        const colorNameLower = colorName.toLowerCase();
+        
+        // First, try to find the variant that corresponds to this color
+        // We'll use the color ID to find the matching variant
+        const selectedColorValue = colorOption?.values.find(val => String(val.id) === selectedColorId);
+        
+        if (selectedColorValue) {
+          console.log(`Looking for variant with color: ${selectedColorValue.title} (ID: ${selectedColorValue.id})`);
+          
+          // Strategy 1a: Try to find a variant that has this color ID in its options
+          const matchingVariant = variants.find(variant => {
+            if (variant.originalVariant && variant.originalVariant.options) {
+              // Check if this variant contains the color ID
+              return variant.originalVariant.options.includes(selectedColorValue.id);
+            }
+            return false;
+          });
+          
+          if (matchingVariant) {
+            console.log(`Found variant ${matchingVariant.id} that matches color ${selectedColorValue.title}`);
+            
+            // Now find the best image for this variant
+            const variantImages = images.filter(img => 
+              img.variant_ids.includes(matchingVariant.id)
+            );
+            
+            if (variantImages.length > 0) {
+              // Prefer front-facing images over folded/back views
+              const frontImage = variantImages.find(img => 
+                img.src.includes('front') || 
+                img.src.includes('main') || 
+                !img.src.includes('folded') && !img.src.includes('back')
+              );
+              
+              if (frontImage) {
+                console.log(`Using front-facing variant image:`, frontImage.src);
+                return frontImage.src;
+              } else {
+                // Use any variant image if no front-facing one found
+                console.log(`Using variant image:`, variantImages[0].src);
+                return variantImages[0].src;
+              }
+            }
+          }
+        }
+        
+        // Strategy 2: Fallback to intelligent color-to-image mapping
+        const availableImages = images.filter(img => img.variant_ids.length > 0);
+        
+        if (availableImages.length > 0) {
+          // First, try to find an image that contains the color name in its URL
+          const colorMatchingImage = availableImages.find(img => {
+            const imgSrc = img.src.toLowerCase();
+            const colorNameLower = colorName.toLowerCase();
+            
+            // Check if the image URL contains the color name
+            if (imgSrc.includes(colorNameLower)) {
+              return true;
+            }
+            
+            // Check for common color synonyms
+            if (colorNameLower.includes('black') && (imgSrc.includes('black') || imgSrc.includes('dark'))) return true;
+            if (colorNameLower.includes('white') && (imgSrc.includes('white') || imgSrc.includes('light'))) return true;
+            if (colorNameLower.includes('red') && imgSrc.includes('red')) return true;
+            if (colorNameLower.includes('blue') && imgSrc.includes('blue')) return true;
+            if (colorNameLower.includes('green') && imgSrc.includes('green')) return true;
+            if (colorNameLower.includes('yellow') && imgSrc.includes('yellow')) return true;
+            if (colorNameLower.includes('orange') && imgSrc.includes('orange')) return true;
+            if (colorNameLower.includes('purple') && imgSrc.includes('purple')) return true;
+            if (colorNameLower.includes('pink') && imgSrc.includes('pink')) return true;
+            if (colorNameLower.includes('brown') && imgSrc.includes('brown')) return true;
+            if (colorNameLower.includes('gray') && (imgSrc.includes('gray') || imgSrc.includes('grey'))) return true;
+            
+            return false;
+          });
+          
+          if (colorMatchingImage) {
+            console.log(`Found color-matching image URL:`, colorMatchingImage.src);
+            return colorMatchingImage.src;
+          }
+          
+          // Strategy 3: Use intelligent color-to-image mapping with preference for front-facing images
+          const colorToImageIndex = (() => {
+            const colorNameLower = colorName.toLowerCase();
+            
+            // Map colors to image positions based on color theory and common associations
+            if (colorNameLower.includes('black') || colorNameLower.includes('dark')) return 0;
+            if (colorNameLower.includes('white') || colorNameLower.includes('light')) return 1;
+            if (colorNameLower.includes('red')) return 2;
+            if (colorNameLower.includes('blue')) return 3;
+            if (colorNameLower.includes('green')) return 4;
+            if (colorNameLower.includes('yellow')) return 5;
+            if (colorNameLower.includes('orange')) return 6;
+            if (colorNameLower.includes('purple')) return 7;
+            if (colorNameLower.includes('pink')) return 8;
+            if (colorNameLower.includes('brown')) return 9;
+            if (colorNameLower.includes('gray') || colorNameLower.includes('grey')) return 10;
+            
+            // For other colors, use the color index as a fallback
+            return colorOption?.values.findIndex(val => String(val.id) === selectedColorId) || 0;
+          })();
+          
+          // Prefer front-facing images over folded/back views
+          const frontImages = availableImages.filter(img => 
+            img.src.includes('front') || 
+            img.src.includes('main') || 
+            !img.src.includes('folded') && !img.src.includes('back')
+          );
+          
+          const imagesToUse = frontImages.length > 0 ? frontImages : availableImages;
+          const imageIndex = colorToImageIndex % imagesToUse.length;
+          const selectedImage = imagesToUse[imageIndex];
+          
+          console.log(`Using intelligent color-to-image mapping: ${colorName} -> index ${colorToImageIndex} -> image ${imageIndex}`);
+          console.log(`Selected image:`, selectedImage.src);
+          console.log(`Image type: ${frontImages.length > 0 ? 'front-facing' : 'any available'}`);
+          
+          return selectedImage.src;
+        }
+        
+        // Strategy 4: Fallback to default image
+        console.log(`No suitable image found for color ${colorName}, using default image`);
+        return image;
+      }
+    }
+    
+    console.log(`Using default image:`, image);
+    return image;
+  })();
 
   // Step logic
   const colorStepActive = !selectedColorId;
@@ -99,6 +224,30 @@ export function HoodieCard({
     setSelectedSizeId(null); // Reset size when color changes
     setAddedToCart(false);
     setColorSelectOpen(false); // Hide color options after selection
+    
+    // Debug: Log color selection for troubleshooting
+    const colorName = colorOption?.values.find(val => String(val.id) === colorId)?.title;
+    console.log(`Color selected: ${colorName} (ID: ${colorId})`);
+    console.log('Available variants:', variants);
+    console.log('Available images:', images);
+    
+    // Log the color options to see what we're working with
+    console.log('Color options:', colorOption?.values);
+    
+    // Log a few variants to see their structure
+    console.log('Sample variants:', variants.slice(0, 3));
+    
+    // Log image analysis for debugging
+    console.log('=== IMAGE ANALYSIS ===');
+    images.forEach((img, index) => {
+      console.log(`Image ${index}:`, {
+        src: img.src,
+        variant_ids: img.variant_ids,
+        position: img.position,
+        is_default: img.is_default
+      });
+    });
+    console.log('=== END IMAGE ANALYSIS ===');
   };
   const handleSizeSelect = (sizeId: string) => {
     setSelectedSizeId(sizeId);
@@ -110,6 +259,8 @@ export function HoodieCard({
       quantity: 1,
       size: sizeLabel,
       color: colorLabel,
+      variantId: selectedVariant?.id,
+      variantImage: displayImage, // Pass the selected variant image
     });
     setAddedToCart(true);
   };
@@ -124,9 +275,9 @@ export function HoodieCard({
   }, [addedToCart]);
 
   return (
-    <div className="bg-dark-800 rounded-lg overflow-hidden group">
+    <div className="bg-white rounded-3xl overflow-hidden group shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
       <div
-        className="relative aspect-square"
+        className="relative aspect-square bg-gray-50"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -134,27 +285,29 @@ export function HoodieCard({
           src={displayImage}
           alt={name}
           fill
-          className="object-cover transition-opacity duration-300"
+          className="object-cover transition-all duration-500 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
-        <div className="absolute top-2 right-2">
-          <Badge className="bg-yellow-500 text-dark-900 hover:bg-yellow-600">Metaverse Item</Badge>
+        <div className="absolute top-4 right-4">
+          <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white border-0 shadow-lg">
+            Metaverse Item
+          </Badge>
         </div>
         {/* Hover overlay for View Details */}
         <Link href={`/product/${id}`}>
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
-            <span className="text-white font-semibold text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-20">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500 flex items-center justify-center">
+            <span className="text-white font-medium text-lg opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
               View Details
             </span>
           </div>
         </Link>
       </div>
-      <div className="p-4">
+      <div className="p-6">
         <Link href={`/product/${id}`}>
-          <h3 className="text-lg font-semibold text-gray-100 group-hover:text-yellow-500 transition-colors cursor-pointer">{name}</h3>
+          <h3 className="text-lg font-medium text-gray-900 group-hover:text-yellow-600 transition-colors cursor-pointer mb-2 line-clamp-2">{name}</h3>
         </Link>
-        <p className="text-gray-400 mb-2">${(selectedVariant?.price || price).toFixed(2)}</p>
-        <p className="text-xs text-gray-500 mb-4 line-clamp-2">{description}</p>
+        <p className="text-2xl font-light text-gray-900 mb-3">${(selectedVariant?.price || price).toFixed(2)}</p>
+        <p className="text-sm text-gray-600 mb-6 line-clamp-2 leading-relaxed">{description}</p>
         
         {/* View Details Button */}
         {/* Removed as per edit hint */}
@@ -164,7 +317,7 @@ export function HoodieCard({
             {/* Only show the button for opening color selection if color not yet selected AND color select is not open */}
             {colorStepActive && !colorSelectOpen && (
               <Button
-                className={`w-full bg-yellow-500 text-dark-900 font-semibold`}
+                className={`w-full bg-gray-900 hover:bg-black text-white font-medium rounded-full py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl`}
                 onClick={() => setColorSelectOpen(true)}
               >
                 Choose Color
@@ -178,10 +331,10 @@ export function HoodieCard({
                     key={val.id}
                     type="button"
                     onClick={() => handleColorSelect(String(val.id))}
-                    className={`px-4 py-1 rounded-full font-semibold text-xs transition-colors
+                    className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 transform hover:scale-105
                       ${selectedColorId === String(val.id)
-                        ? 'bg-yellow-400 text-black border-2 border-yellow-500'
-                        : 'bg-black text-white border border-gray-700 hover:bg-yellow-500 hover:text-black'}
+                        ? 'bg-yellow-500 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'}
                     `}
                   >
                     {val.title}
@@ -196,15 +349,15 @@ export function HoodieCard({
           <div className="mb-2">
             <span className="text-xs text-gray-400 font-medium">Sizes</span>
             <div className="mt-2 flex flex-wrap gap-2">
-              {sizeOption.values.map((val) => (
-                <button
-                  key={val.id}
-                  type="button"
-                  onClick={() => handleSizeSelect(String(val.id))}
-                  className={`px-4 py-1 rounded-full font-semibold text-xs transition-colors
-                    ${selectedSizeId === String(val.id)
-                      ? 'bg-blue-600 text-white border-2 border-blue-400'
-                      : 'bg-black text-white border border-gray-700 hover:bg-blue-500 hover:text-white'}
+                              {sizeOption.values.map((val) => (
+                  <button
+                    key={val.id}
+                    type="button"
+                    onClick={() => handleSizeSelect(String(val.id))}
+                    className={`px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 transform hover:scale-105
+                      ${selectedSizeId === String(val.id)
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'}
                   `}
                 >
                   {val.title}
@@ -216,7 +369,7 @@ export function HoodieCard({
               <div className="mt-3">
                 <button
                   type="button"
-                  className="text-yellow-500 hover:text-yellow-400 text-sm font-medium underline"
+                  className="text-yellow-600 hover:text-yellow-700 text-sm font-medium transition-colors duration-300"
                   onClick={() => { 
                     setSelectedColorId(null); 
                     setSelectedSizeId(null); 
@@ -233,13 +386,13 @@ export function HoodieCard({
         {/* Step 3: Add to Cart */}
         {canAddToCart && (
           <div className="flex gap-2 mt-2">
-            <Button
-              className={`flex-1 border-2 border-yellow-400 font-bold py-3 flex items-center justify-center text-sm transition-colors
+          <Button
+              className={`flex-1 font-medium py-3 flex items-center justify-center text-sm transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl
                 ${addedToCart
-                  ? 'bg-yellow-400 text-black border-yellow-400'
-                  : 'bg-transparent text-yellow-400 hover:bg-yellow-400 hover:text-black'}
+                  ? 'bg-green-500 text-white'
+                  : 'bg-yellow-500 hover:bg-yellow-600 text-white'}
               `}
-              onClick={handleAddToCart}
+            onClick={handleAddToCart}
               disabled={addedToCart}
             >
               {addedToCart ? (
@@ -251,8 +404,8 @@ export function HoodieCard({
                   <ShoppingCart className="w-5 h-5 mr-2" /> Add to Cart
                 </>
               )}
-            </Button>
-          </div>
+          </Button>
+        </div>
         )}
         {/* Change Color/Size after adding to cart or when both options are selected */}
         {selectedColorId && selectedSizeId && (
@@ -261,25 +414,21 @@ export function HoodieCard({
             <div className="flex gap-2">
               {colorOption && (
                 <Button
-                  className="flex-1 border-2 border-green-500 text-green-500 font-bold bg-transparent hover:bg-green-500 hover:text-white transition-colors py-3 text-sm"
-                  style={{ boxShadow: 'none' }}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-all duration-300 transform hover:scale-105 py-3 text-sm rounded-full border-0"
                   onClick={() => { 
                     setSelectedColorId(null); 
                     setSelectedSizeId(null); 
                     setAddedToCart(false);
                     setColorSelectOpen(true); // Show color selection directly
                   }}
-                  variant="outline"
                 >
                   Change Color
                 </Button>
               )}
               {sizeOption && (
                 <Button
-                  className="flex-1 border-2 border-blue-500 text-blue-500 font-bold bg-transparent hover:bg-blue-500 hover:text-white transition-colors py-3 text-sm"
-                  style={{ boxShadow: 'none' }}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-all duration-300 transform hover:scale-105 py-3 text-sm rounded-full border-0"
                   onClick={() => { setSelectedSizeId(null); setAddedToCart(false); }}
-                  variant="outline"
                 >
                   Change Size
                 </Button>

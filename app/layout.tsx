@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark scroll-smooth">
-      <body className={`${inter.className} bg-dark-900 text-gray-100`}>
+      <body className={`${inter.className} bg-white text-gray-900`}>
         <HeadLoader />
         <ClientLayoutContent>
           {children}
