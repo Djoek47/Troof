@@ -204,6 +204,44 @@ app.post('/cart/add', async (req, res) => {
   }
 });
 
+app.post('/cart/update-item', async (req, res) => {
+  try {
+    const { id, size, color, name, price, variantImage } = req.body;
+    const walletId = req.query.walletId as string;
+    
+    if (typeof id !== 'number') {
+      return res.status(400).json({ message: 'Invalid item ID provided.' });
+    }
+    
+    const identifier = await getCartIdentifier(walletId);
+    const cartPath = getCartPath(identifier);
+    let cart = await loadCart(cartPath);
+    
+    // Find the specific item to update
+    const itemIndex = cart.items.findIndex(item => 
+      item.id === id && item.size === size && item.color === color
+    );
+    
+    if (itemIndex === -1) {
+      return res.status(404).json({ message: 'Item not found in cart.' });
+    }
+    
+    // Update the item with new data
+    if (name) cart.items[itemIndex].name = name;
+    if (price !== undefined) cart.items[itemIndex].price = price;
+    if (variantImage) cart.items[itemIndex].variantImage = variantImage;
+    
+    await saveCart(cartPath, cart);
+    res.json({
+      ...cart,
+      cartUrl: `https://storage.googleapis.com/${BUCKET_NAME}/${cartPath}`
+    });
+  } catch (error) {
+    console.error('Error updating cart item:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
 app.post('/cart/remove', async (req, res) => {
   try {
     // Accept id, size, and color from the request body

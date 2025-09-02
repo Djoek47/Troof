@@ -25,6 +25,8 @@ interface CartContextType {
   localCartItems: CartItem[]; // Still expose for checking if migration is needed
   migrateLocalCartToWallet: () => Promise<void>;
   currentWalletId: string | undefined; // Expose wallet ID
+  updateLocalCartWithPrintifyData: (printifyProducts: any[]) => void;
+  updateWalletCartWithPrintifyData: (printifyProducts: any[]) => Promise<void>;
 }
 
 // Initial state for the combined state
@@ -107,9 +109,46 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [currentWalletId, localCartItems, serverCartState, isCartOpen]); // Depend on all relevant state pieces
 
+  // Function to update wallet cart items with Printify data
+  const updateWalletCartWithPrintifyData = async (printifyProducts: any[]) => {
+    if (currentWalletId && printifyProducts.length > 0) {
+      const currentItems = state.items;
+      console.log(`[updateWalletCartWithPrintifyData] Current wallet cart items:`, currentItems);
+      console.log(`[updateWalletCartWithPrintifyData] Printify products available:`, printifyProducts.length);
+      
+      if (currentItems.length > 0) {
+        // Process items with Printify data for display (without updating server)
+        const processedItems = currentItems.map(item => {
+          const printifyProduct = printifyProducts[item.id - 1];
+          if (printifyProduct) {
+            return {
+              ...item,
+              // Use Printify data for display, but keep original server data
+              displayName: printifyProduct.name,
+              displayPrice: printifyProduct.variants?.[0]?.price,
+              // Keep the variantImage for color coordination
+              variantImage: item.variantImage || printifyProduct.variants?.[0]?.image
+            };
+          }
+          return item;
+        });
+        
+        // Update the state with processed items for display
+        setState(prevState => ({
+          ...prevState,
+          items: processedItems
+        }));
+        
+        console.log(`[updateWalletCartWithPrintifyData] Processed ${processedItems.length} items with Printify data`);
+      }
+    }
+  };
+
   // Effect to listen for Printify data updates and refresh cart items
   useEffect(() => {
-    const handlePrintifyUpdate = () => {
+    const handlePrintifyUpdate = (event: CustomEvent) => {
+      const printifyData = event.detail;
+      
       if (!currentWalletId) {
         // Refresh local cart items when Printify data is updated
         const refreshedItems = getLocalCart();
@@ -118,12 +157,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
           ...prevState,
           items: refreshedItems
         }));
+      } else {
+        // Update wallet cart items with Printify data
+        updateWalletCartWithPrintifyData(printifyData);
       }
     };
 
-    window.addEventListener('printify-data-updated', handlePrintifyUpdate);
-    return () => window.removeEventListener('printify-data-updated', handlePrintifyUpdate);
-  }, [currentWalletId]);
+    window.addEventListener('printify-data-updated', handlePrintifyUpdate as EventListener);
+    return () => window.removeEventListener('printify-data-updated', handlePrintifyUpdate as EventListener);
+  }, [currentWalletId, updateWalletCartWithPrintifyData]);
 
   // Function to fetch cart from cloud storage (only when wallet is connected)
   const fetchCart = useCallback(async () => {
@@ -606,6 +648,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         migrateLocalCartToWallet,
         currentWalletId,
         updateLocalCartWithPrintifyData,
+        updateWalletCartWithPrintifyData,
       }}
     >
       {children}
