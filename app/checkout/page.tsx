@@ -27,6 +27,11 @@ export default function CheckoutPage() {
         if (!res.ok) throw new Error("Failed to fetch Printify products")
         const data = await res.json()
         setPrintifyProducts(data)
+        
+        // Force a re-render to ensure checkout displays updated data
+        setTimeout(() => {
+          setPrintifyProducts(prev => [...prev])
+        }, 100)
       } catch (e) {
         setPrintifyProducts([])
       }
@@ -65,6 +70,38 @@ export default function CheckoutPage() {
     console.log(`[Checkout] Processing item:`, item)
     console.log(`[Checkout] Printify products count:`, printifyProducts.length)
     
+    // ALWAYS prioritize Printify data over any item data when available
+    const product = printifyProducts[item.id - 1]
+    if (product) {
+      console.log(`[Checkout] Found Printify product for ID ${item.id}:`, product);
+      
+      // Use Printify data exclusively, ignore any mock data from the item
+      const variant = product.variants?.find((v: any) => v.is_enabled) || product.variants?.[0];
+      let price = variant?.price || 0;
+      
+      // Convert price from cents to dollars if needed
+      if (price > 1000) {
+        price = price / 100;
+      }
+      
+      console.log(`[Checkout] Using Printify data exclusively for item ${item.id}:`, {
+        name: product.name,
+        price: price,
+        originalItemName: item.name,
+        originalItemPrice: item.price
+      });
+      
+      // Return Printify data with item's size/color
+      return {
+        name: product.name,
+        price: price,
+        size: item.size,
+        color: item.color,
+        // Use Printify image if available, otherwise fallback
+        image: product.images?.[0]?.src || item.variantImage || "/placeholder.svg",
+      };
+    }
+    
     // If we have a variant image stored, use it (this ensures color accuracy)
     if (item.variantImage) {
       console.log(`[Checkout] Using stored variant image:`, item.variantImage)
@@ -77,212 +114,8 @@ export default function CheckoutPage() {
       }
     }
     
-    const product = printifyProducts[item.id - 1]
-    console.log(`[Checkout] Found product for ID ${item.id}:`, product)
-    
-    if (!product) {
-      console.log(`[Checkout] No product found, using fallback`)
-      return { name: item.name, image: item.image1, price: item.price, size: item.size, color: item.color }
-    }
-    
-    // Strategy 1: Use Printify's variant ID system for exact color matching
-    const colorName = item.color
-    const colorNameLower = colorName?.toLowerCase()
-    
-    console.log(`[Checkout] Looking for color: ${colorName}`)
-    console.log(`[Checkout] Product options:`, product.options)
-    console.log(`[Checkout] Product variants:`, product.variants)
-    console.log(`[Checkout] Product images:`, product.images)
-    
-    if (colorName && product.options) {
-      // Find the color option
-      const colorOption = product.options.find((opt: any) => 
-        opt.name && opt.name.toLowerCase().includes('color')
-      )
-      
-      if (colorOption && colorOption.values) {
-        // Find the selected color value
-        const selectedColorValue = colorOption.values.find((val: any) => 
-          val.title && val.title.toLowerCase() === colorNameLower
-        )
-        
-        if (selectedColorValue) {
-          console.log(`Looking for variant with color: ${selectedColorValue.title} (ID: ${selectedColorValue.id})`)
-          
-          // Strategy 1a: Try to find a variant that has this color ID in its options
-          const matchingVariant = product.variants?.find((variant: any) => {
-            if (variant.originalVariant && variant.originalVariant.options) {
-              // Check if this variant contains the color ID
-              return variant.originalVariant.options.includes(selectedColorValue.id)
-            }
-            return false
-          })
-          
-          if (matchingVariant) {
-            console.log(`Found variant ${matchingVariant.id} that matches color ${selectedColorValue.title}`)
-            
-            // Now find the best image for this variant
-            const variantImages = product.images?.filter((img: any) => 
-              img.variant_ids.includes(matchingVariant.id)
-            ) || []
-            
-            if (variantImages.length > 0) {
-              // Prefer front-facing images over folded/back views
-              const frontImage = variantImages.find((img: any) => 
-                img.src.includes('front') || 
-                img.src.includes('main') || 
-                !img.src.includes('folded') && !img.src.includes('back')
-              )
-              
-              if (frontImage) {
-                console.log(`Using front-facing variant image:`, frontImage.src)
-                // Convert price from cents to dollars if needed
-                let price;
-                if (matchingVariant?.price) {
-                  if (matchingVariant.price > 1000) {
-                    price = matchingVariant.price / 100; // Convert cents to dollars
-                  } else {
-                    price = matchingVariant.price; // Already in dollars
-                  }
-                } else {
-                  price = item.price;
-                }
-                
-                return {
-                  name: product.name,
-                  image: frontImage.src,
-                  price: price,
-                  size: item.size,
-                  color: item.color,
-                }
-              } else {
-                // Use any variant image if no front-facing one found
-                console.log(`Using variant image:`, variantImages[0].src)
-                // Convert price from cents to dollars if needed
-                let price;
-                if (matchingVariant?.price) {
-                  if (matchingVariant.price > 1000) {
-                    price = matchingVariant.price / 100; // Convert cents to dollars
-                  } else {
-                    price = matchingVariant.price; // Already in dollars
-                  }
-                } else {
-                  price = item.price;
-                }
-                
-                return {
-                  name: product.name,
-                  image: variantImages[0].src,
-                  price: price,
-                  size: item.size,
-                  color: item.color,
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    // Strategy 2: Fallback to intelligent color-to-image mapping
-    const availableImages = product.images?.filter((img: any) => img.variant_ids.length > 0) || []
-    
-    if (availableImages.length > 0) {
-      // First, try to find an image that contains the color name in its URL
-      const colorMatchingImage = availableImages.find((img: any) => {
-        const imgSrc = img.src.toLowerCase()
-        const colorNameLower = colorName?.toLowerCase()
-        
-        if (!colorNameLower) return false
-        
-        // Check if the image URL contains the color name
-        if (imgSrc.includes(colorNameLower)) {
-          return true
-        }
-        
-        // Check for common color synonyms
-        if (colorNameLower.includes('black') && (imgSrc.includes('black') || imgSrc.includes('dark'))) return true
-        if (colorNameLower.includes('white') && (imgSrc.includes('white') || imgSrc.includes('light'))) return true
-        if (colorNameLower.includes('red') && imgSrc.includes('red')) return true
-        if (colorNameLower.includes('blue') && imgSrc.includes('blue')) return true
-        if (colorNameLower.includes('green') && imgSrc.includes('green')) return true
-        if (colorNameLower.includes('yellow') && imgSrc.includes('yellow')) return true
-        if (colorNameLower.includes('orange') && imgSrc.includes('orange')) return true
-        if (colorNameLower.includes('purple') && imgSrc.includes('purple')) return true
-        if (colorNameLower.includes('pink') && imgSrc.includes('pink')) return true
-        if (colorNameLower.includes('brown') && imgSrc.includes('brown')) return true
-        if (colorNameLower.includes('gray') && (imgSrc.includes('gray') || imgSrc.includes('grey'))) return true
-        
-        return false
-      })
-      
-      if (colorMatchingImage) {
-        console.log(`Found color-matching image URL:`, colorMatchingImage.src)
-        return {
-          name: product.name,
-          image: colorMatchingImage.src,
-          price: item.price,
-          size: item.size,
-          color: item.color,
-        }
-      }
-      
-      // Strategy 3: Use intelligent color-to-image mapping with preference for front-facing images
-      const colorToImageIndex = (() => {
-        const colorNameLower = colorName?.toLowerCase()
-        
-        if (!colorNameLower) return 0
-        
-        // Map colors to image positions based on color theory and common associations
-        if (colorNameLower.includes('black') || colorNameLower.includes('dark')) return 0
-        if (colorNameLower.includes('white') || colorNameLower.includes('light')) return 1
-        if (colorNameLower.includes('red')) return 2
-        if (colorNameLower.includes('blue')) return 3
-        if (colorNameLower.includes('green')) return 4
-        if (colorNameLower.includes('yellow')) return 5
-        if (colorNameLower.includes('orange')) return 6
-        if (colorNameLower.includes('purple')) return 7
-        if (colorNameLower.includes('pink')) return 8
-        if (colorNameLower.includes('brown')) return 9
-        if (colorNameLower.includes('gray') || colorNameLower.includes('grey')) return 10
-        
-        // For other colors, use a hash-based fallback
-        return Math.abs(colorNameLower.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % availableImages.length
-      })()
-      
-      // Prefer front-facing images over folded/back views
-      const frontImages = availableImages.filter((img: any) => 
-        img.src.includes('front') || 
-        img.src.includes('main') || 
-        !img.src.includes('folded') && !img.src.includes('back')
-      )
-      
-      const imagesToUse = frontImages.length > 0 ? frontImages : availableImages
-      const imageIndex = colorToImageIndex % imagesToUse.length
-      const selectedImage = imagesToUse[imageIndex]
-      
-      console.log(`Using intelligent color-to-image mapping: ${colorName} -> index ${colorToImageIndex} -> image ${imageIndex}`)
-      console.log(`Selected image:`, selectedImage.src)
-      console.log(`Image type: ${frontImages.length > 0 ? 'front-facing' : 'any available'}`)
-      
-      return {
-        name: product.name,
-        image: selectedImage.src,
-        price: item.price,
-        size: item.size,
-        color: item.color,
-      }
-    }
-    
-    // Strategy 4: Fallback to default image
-    console.log(`No suitable image found for color ${colorName}, using default image`)
-    return {
-      name: product.name,
-      image: product.images?.[0]?.src || item.image1 || "/placeholder.svg",
-      price: item.price,
-      size: item.size,
-      color: item.color,
-    }
+    console.log(`[Checkout] No Printify product found, using fallback`)
+    return { name: item.name, image: item.image1, price: item.price, size: item.size, color: item.color }
   }
 
   // Calculate total using real Printify prices
