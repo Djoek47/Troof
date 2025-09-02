@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, ShoppingCart, Shield } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { ConnectButton } from "thirdweb/react"
+import { client } from "@/app/layout"
 
 export default function CheckoutPage() {
   const { state } = useCart()
@@ -234,7 +236,10 @@ export default function CheckoutPage() {
           </div>
         </div>
         
-
+        {/* Wallet Connection */}
+        <div className="flex justify-end mb-6">
+          <ConnectButton client={client} />
+        </div>
         
         {/* Back to Store button */}
         <div className="mb-8">

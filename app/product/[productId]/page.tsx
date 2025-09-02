@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
 import { CartWrapper } from "@/components/cart-wrapper"
 import { ProductSplashScreen } from "@/components/splash-screen"
-import { CheckCircle, ShoppingCart, Minus, Plus } from "lucide-react"
+import { CheckCircle, ShoppingCart, Minus, Plus, ArrowLeft } from "lucide-react"
 
 export default function ProductDetailPage() {
   const { productId } = useParams() as { productId: string }
@@ -284,9 +284,13 @@ export default function ProductDetailPage() {
           {/* Image Gallery */}
           <div className="flex-1 flex flex-col items-center">
             <div className="w-full mb-6 flex justify-start">
-              <button className="text-gray-500 hover:text-gray-700 text-sm flex items-center font-light transition-colors tracking-wide" onClick={() => router.back()}>
-                &larr; Back to Store
-              </button>
+              <Button 
+                onClick={() => router.back()} 
+                className="font-medium py-3 px-6 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-white"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Store
+              </Button>
             </div>
             <div className="relative w-full max-w-lg aspect-square mb-6">
               <Image

@@ -260,13 +260,22 @@ export const EnhancedCheckoutForm = () => {
 
   const handleStripeSuccess = async (paymentIntentId: string) => {
     try {
-      const response = await fetch("/api/checkout", {
+      // Use the dedicated Stripe confirmation route for proper order labeling
+      const response = await fetch("/api/payments/stripe/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cartItems: state.items,
-          shippingAddress,
-          processPayment: true,
+          paymentIntentId,
+          orderData: {
+            items: state.items.map((item: any) => ({
+              productId: item.id,
+              id: item.id,
+              color: item.color,
+              size: item.size,
+              quantity: item.quantity,
+            })),
+            shippingAddress,
+          },
         }),
       })
 
@@ -275,7 +284,7 @@ export const EnhancedCheckoutForm = () => {
       if (result.success) {
         // Add payment intent ID and email to the order details for Stripe payments
         const orderWithPaymentId = {
-          ...result.order,
+          orderId: result.orderId,
           paymentIntentId: paymentIntentId,
           email: shippingAddress.email
         }

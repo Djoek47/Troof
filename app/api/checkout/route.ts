@@ -26,6 +26,8 @@ export async function POST(req: Request) {
 
     // 3. Prepare Printify order payload
     const printifyOrder = {
+      external_id: `Crypto_API_${Date.now()}`,
+      label: "Crypto API",
       line_items,
       address_to: {
         first_name: shippingAddress.firstName,

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { PrintifyAPI, getPrintifyVariantId } from "@/lib/printify"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-05-28.basil",
@@ -22,52 +23,60 @@ export async function POST(request: NextRequest) {
 
     // Create order in Printify
     try {
-      const printifyResponse = await fetch(
-        "https://api.printify.com/v1/shops/" + process.env.PRINTIFY_SHOP_ID + "/orders.json",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.PRINTIFY_API_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            external_id: `stripe_${paymentIntentId}`,
-            line_items: orderData.items.map((item: any) => ({
-              product_id: item.productId,
-              variant_id: item.variantId,
-              quantity: item.quantity,
-            })),
-            shipping_method: 1,
-            send_shipping_notification: true,
-            address_to: {
-              first_name: orderData.shippingAddress.firstName,
-              last_name: orderData.shippingAddress.lastName,
-              email: orderData.shippingAddress.email,
-              phone: orderData.shippingAddress.phone || "",
-              country: orderData.shippingAddress.country,
-              region: orderData.shippingAddress.state,
-              address1: orderData.shippingAddress.address1,
-              address2: orderData.shippingAddress.address2 || "",
-              city: orderData.shippingAddress.city,
-              zip: orderData.shippingAddress.zipCode,
-            },
-          }),
+      // 1. Fetch Printify products for mapping
+      const printifyApi = new PrintifyAPI();
+      const res = await printifyApi.getProducts(1, 12); // Fetch all 12 products
+      const printifyProducts = res.data;
+
+      // 2. Map cart items to real Printify product/variant IDs using robust mapping
+      const line_items = orderData.items.map((item: any) => {
+        // Use the index mapping: id 1 => index 0, id 2 => index 1, etc.
+        const product = printifyProducts[item.productId - 1] || printifyProducts[item.id - 1];
+        if (!product) throw new Error(`Product not found for id ${item.productId || item.id}`);
+        
+        // For Stripe orders, we need to get the color and size from the cart item
+        // This assumes the cart item has color and size information
+        const color = item.color;
+        const size = item.size;
+        
+        const variantId = getPrintifyVariantId(product, color, size);
+        if (!variantId) throw new Error(`Variant not found for size ${size} and color ${color} in product id ${product.id}`);
+        
+        return {
+          product_id: product.id, // real Printify product ID
+          variant_id: variantId, // real Printify variant ID
+          quantity: item.quantity,
+        };
+      });
+
+      // 3. Create Printify order using the API
+      const printifyOrder = {
+        external_id: `Stripe_${paymentIntentId}`,
+        label: "Stripe API",
+        line_items,
+        address_to: {
+          first_name: orderData.shippingAddress.firstName,
+          last_name: orderData.shippingAddress.lastName,
+          email: orderData.shippingAddress.email,
+          phone: orderData.shippingAddress.phone || "",
+          country: orderData.shippingAddress.country,
+          region: orderData.shippingAddress.state,
+          address1: orderData.shippingAddress.address1,
+          address2: orderData.shippingAddress.address2 || "",
+          city: orderData.shippingAddress.city,
+          zip: orderData.shippingAddress.zipCode,
         },
-      )
+        send_shipping_notification: true,
+      };
 
-      if (!printifyResponse.ok) {
-        const errorText = await printifyResponse.text()
-        console.error("Printify order creation failed:", errorText)
-        throw new Error(`Printify API error: ${printifyResponse.status}`)
-      }
-
-      const printifyOrder = await printifyResponse.json()
+      // 4. Send order to Printify
+      const orderResponse = await printifyApi.createOrder(printifyOrder);
 
       return NextResponse.json({
         success: true,
         paymentIntentId,
-        orderId: printifyOrder.id,
-        order: printifyOrder,
+        orderId: orderResponse.id,
+        order: orderResponse,
       })
     } catch (printifyError) {
       console.error("Error creating Printify order:", printifyError)
