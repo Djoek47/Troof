@@ -221,11 +221,24 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-6 max-w-7xl py-12">
+        {/* Main Logo - Same as header */}
+        <div className="flex justify-center mb-8">
+          <div className="relative w-24 h-24">
+            <Image 
+              src="/logo.png" 
+              alt="Faberstore" 
+              fill 
+              className="object-contain" 
+              priority
+            />
+          </div>
+        </div>
+        
         {/* Back to Store button */}
         <div className="mb-8">
           <Button 
             onClick={() => router.push("/")} 
-            className="font-medium py-3 px-6 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-gray-900 hover:bg-black text-white"
+            className="font-medium py-3 px-6 transition-all duration-300 transform hover:scale-105 rounded-full shadow-lg hover:shadow-xl bg-yellow-500 hover:bg-yellow-600 text-white"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Store
@@ -307,14 +320,15 @@ export default function CheckoutPage() {
 
         {/* Right: Shipping/Payment Form (dominant) */}
         <div className="flex-1 flex flex-col gap-8 relative">
-          {/* Logo - Much more visible and better positioned */}
-          <div className="absolute top-8 right-8 opacity-80 pointer-events-none z-0">
-            <div className="relative w-40 h-40">
+          {/* Logo - Prominently displayed above the checkout form */}
+          <div className="flex justify-center mb-8">
+            <div className="relative w-60 h-60 opacity-90">
               <Image 
                 src="/FaberlanD78.png" 
                 alt="FaberlanD Logo" 
                 fill 
                 className="object-contain" 
+                priority
               />
             </div>
           </div>
