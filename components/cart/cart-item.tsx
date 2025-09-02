@@ -32,10 +32,14 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
 
   // Enhanced Helper: Map cart item to Printify product/variant with intelligent color-to-image mapping
   function getPrintifyProductInfo(cartItem: any) {
-    console.log(`[Cart Item] Processing item:`, cartItem)
-    console.log(`[Cart Item] Item variantImage:`, cartItem.variantImage);
-    console.log(`[Cart Item] Item keys:`, Object.keys(cartItem));
-    console.log(`[Cart Item] Printify products count:`, printifyProducts.length)
+    console.log(`[Cart Item] ===== DEBUGGING COLOR MATCHING =====`);
+    console.log(`[Cart Item] Cart item received:`, cartItem);
+    console.log(`[Cart Item] Item color: "${cartItem.color}"`);
+    console.log(`[Cart Item] Item size: "${cartItem.size}"`);
+    console.log(`[Cart Item] Item variantImage: "${cartItem.variantImage}"`);
+    console.log(`[Cart Item] Printify products count: ${printifyProducts.length}`);
+    console.log(`[Cart Item] Cart item keys:`, Object.keys(cartItem));
+    console.log(`[Cart Item] Cart item full structure:`, JSON.stringify(cartItem, null, 2));
     
     // PRIORITY 1: If we have a variant image stored, use it (this ensures color accuracy)
     if (cartItem.variantImage) {
@@ -75,7 +79,102 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
     const printifyProduct = printifyProducts[cartItem.id - 1];
     if (printifyProduct) {
       console.log(`[Cart Item] PRIORITY 2: Using Printify data (no variant image stored):`, printifyProduct);
+      console.log(`[Cart Item] Printify product options:`, printifyProduct.options);
+      console.log(`[Cart Item] Printify product variants:`, printifyProduct.variants);
+      console.log(`[Cart Item] Printify product images:`, printifyProduct.images);
+      console.log(`[Cart Item] Printify product name:`, printifyProduct.name);
+      console.log(`[Cart Item] Printify product title:`, printifyProduct.title);
       
+      // Use the same color matching logic as HoodieCard
+      const colorName = cartItem.color;
+      if (colorName && printifyProduct.options) {
+        console.log(`[Cart Item] ===== COLOR MATCHING STRATEGY 1 (HOODIE CARD LOGIC) =====`);
+        console.log(`[Cart Item] Looking for color: "${colorName}"`);
+        
+        // Find the color option
+        const colorOption = printifyProduct.options.find((opt: any) => 
+          opt.name && opt.name.toLowerCase().includes('color')
+        );
+        
+        console.log(`[Cart Item] Found color option:`, colorOption);
+        
+        if (colorOption && colorOption.values) {
+          console.log(`[Cart Item] Color option values:`, colorOption.values);
+          
+          // Find the selected color value
+          const selectedColorValue = colorOption.values.find((val: any) => 
+            val.title && val.title.toLowerCase() === colorName.toLowerCase()
+          );
+          
+          console.log(`[Cart Item] Selected color value:`, selectedColorValue);
+          
+          if (selectedColorValue) {
+            console.log(`[Cart Item] Looking for variant with color: ${selectedColorValue.title} (ID: ${selectedColorValue.id})`);
+            
+            // Strategy 1a: Try to find a variant that has this color ID in its options
+            const matchingVariant = printifyProduct.variants?.find((variant: any) => {
+              console.log(`[Cart Item] Checking variant ${variant.id}:`, variant);
+              console.log(`[Cart Item] Variant originalVariant:`, variant.originalVariant);
+              console.log(`[Cart Item] Variant options:`, variant.originalVariant?.options);
+              console.log(`[Cart Item] Looking for color ID: ${selectedColorValue.id}`);
+              
+              if (variant.originalVariant && variant.originalVariant.options) {
+                // Check if this variant contains the color ID
+                const hasColor = variant.originalVariant.options.includes(selectedColorValue.id);
+                console.log(`[Cart Item] Variant ${variant.id} has color ${selectedColorValue.id}:`, hasColor);
+                return hasColor;
+              }
+              return false;
+            });
+            
+            console.log(`[Cart Item] Matching variant found:`, matchingVariant);
+            
+            if (matchingVariant) {
+              console.log(`[Cart Item] Found variant ${matchingVariant.id} that matches color ${selectedColorValue.title}`);
+              
+              // Now find the best image for this variant
+              const variantImages = printifyProduct.images?.filter((img: any) => 
+                img.variant_ids.includes(matchingVariant.id)
+              ) || [];
+              
+              console.log(`[Cart Item] Variant images found:`, variantImages);
+              
+              if (variantImages.length > 0) {
+                // Prefer front-facing images over folded/back views
+                const frontImage = variantImages.find((img: any) => 
+                  img.src.includes('front') || 
+                  img.src.includes('main') || 
+                  !img.src.includes('folded') && !img.src.includes('back')
+                );
+                
+                if (frontImage) {
+                  console.log(`[Cart Item] Using front-facing variant image:`, frontImage.src);
+                  return {
+                    name: printifyProduct.name,
+                    price: printifyProduct.variants?.[0]?.price || 0,
+                    size: cartItem.size,
+                    color: cartItem.color,
+                    image: frontImage.src,
+                  };
+                } else {
+                  // Use any variant image if no front-facing one found
+                  console.log(`[Cart Item] Using variant image:`, variantImages[0].src);
+                  return {
+                    name: printifyProduct.name,
+                    price: printifyProduct.variants?.[0]?.price || 0,
+                    size: cartItem.size,
+                    color: cartItem.color,
+                    image: variantImages[0].src,
+                  };
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // If color matching failed, fall back to the first image
+      console.log(`[Cart Item] Color matching failed, using first available image`);
       const variant = printifyProduct.variants?.find((v: any) => v.is_enabled) || printifyProduct.variants?.[0];
       let price = variant?.price || 0;
       
@@ -93,7 +192,9 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
       };
     }
     
+    // PRIORITY 3: Try to find product by ID in printifyProducts array
     const product = printifyProducts[cartItem.id - 1]
+    console.log(`[Cart Item] PRIORITY 3: Looking for product with ID ${cartItem.id} in printifyProducts array`);
     console.log(`[Cart Item] Found product for ID ${cartItem.id}:`, product)
     
     if (!product) {
@@ -128,10 +229,12 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
     const colorName = cartItem.color
     const colorNameLower = colorName?.toLowerCase()
     
-    console.log(`[Cart Item] Looking for color: ${colorName}`)
-    console.log(`[Cart Item] Product options:`, product.options)
-    console.log(`[Cart Item] Product variants:`, product.variants)
-    console.log(`[Cart Item] Product images:`, product.images)
+    console.log(`[Cart Item] ===== COLOR MATCHING STRATEGY 1 =====`);
+    console.log(`[Cart Item] Looking for color: "${colorName}"`);
+    console.log(`[Cart Item] Color lowercase: "${colorNameLower}"`);
+    console.log(`[Cart Item] Product options:`, product.options);
+    console.log(`[Cart Item] Product variants:`, product.variants);
+    console.log(`[Cart Item] Product images:`, product.images);
     
     if (colorName && product.options) {
       // Find the color option
@@ -139,11 +242,17 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
         opt.name && opt.name.toLowerCase().includes('color')
       )
       
+      console.log(`[Cart Item] Found color option:`, colorOption);
+      
       if (colorOption && colorOption.values) {
+        console.log(`[Cart Item] Color option values:`, colorOption.values);
+        
         // Find the selected color value
         const selectedColorValue = colorOption.values.find((val: any) => 
           val.title && val.title.toLowerCase() === colorNameLower
         )
+        
+        console.log(`[Cart Item] Selected color value:`, selectedColorValue);
         
         if (selectedColorValue) {
           console.log(`[Cart Item] Looking for variant with color: ${selectedColorValue.title} (ID: ${selectedColorValue.id})`)
@@ -157,6 +266,8 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
             return false
           })
           
+          console.log(`[Cart Item] Matching variant found:`, matchingVariant);
+          
           if (matchingVariant) {
             console.log(`[Cart Item] Found variant ${matchingVariant.id} that matches color ${selectedColorValue.title}`)
             
@@ -164,6 +275,8 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
             const variantImages = product.images?.filter((img: any) => 
               img.variant_ids.includes(matchingVariant.id)
             ) || []
+            
+            console.log(`[Cart Item] Variant images found:`, variantImages);
             
             if (variantImages.length > 0) {
               // Prefer front-facing images over folded/back views
@@ -173,26 +286,26 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
                 !img.src.includes('folded') && !img.src.includes('back')
               )
               
-                                  if (frontImage) {
-                      console.log(`[Cart Item] Using front-facing variant image:`, frontImage.src)
-                      return {
-                        name: product.title || product.name,
-                        image: frontImage.src,
-                        price: price,
-                        size: cartItem.size,
-                        color: cartItem.color,
-                      }
-                    } else {
-                      // Use any variant image if no front-facing one found
-                      console.log(`[Cart Item] Using variant image:`, variantImages[0].src)
-                      return {
-                        name: product.title || product.name,
-                        image: variantImages[0].src,
-                        price: price,
-                        size: cartItem.size,
-                        color: cartItem.color,
-                      }
-                    }
+              if (frontImage) {
+                console.log(`[Cart Item] Using front-facing variant image:`, frontImage.src)
+                return {
+                  name: product.title || product.name,
+                  image: frontImage.src,
+                  price: price,
+                  size: cartItem.size,
+                  color: cartItem.color,
+                }
+              } else {
+                // Use any variant image if no front-facing one found
+                console.log(`[Cart Item] Using variant image:`, variantImages[0].src)
+                return {
+                  name: product.title || product.name,
+                  image: variantImages[0].src,
+                  price: price,
+                  size: cartItem.size,
+                  color: cartItem.color,
+                }
+              }
             }
           }
         }
@@ -202,16 +315,24 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
     // Strategy 2: Fallback to intelligent color-to-image mapping
     const availableImages = product.images?.filter((img: any) => img.variant_ids.length > 0) || []
     
+    console.log(`[Cart Item] ===== COLOR MATCHING STRATEGY 2 =====`);
+    console.log(`[Cart Item] Available images with variant IDs:`, availableImages.length);
+    
     if (availableImages.length > 0) {
       // First, try to find an image that contains the color name in its URL
       const colorMatchingImage = availableImages.find((img: any) => {
         const imgSrc = img.src.toLowerCase()
         const colorNameLower = colorName?.toLowerCase()
         
+        console.log(`[Cart Item] Checking image:`, img.src);
+        console.log(`[Cart Item] Image src lowercase:`, imgSrc);
+        console.log(`[Cart Item] Color name lowercase:`, colorNameLower);
+        
         if (!colorNameLower) return false
         
         // Check if the image URL contains the color name
         if (imgSrc.includes(colorNameLower)) {
+          console.log(`[Cart Item] Found exact color match in URL!`);
           return true
         }
         
@@ -231,20 +352,23 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
         return false
       })
       
-                  if (colorMatchingImage) {
-              console.log(`[Cart Item] Found color-matching image URL:`, colorMatchingImage.src)
-              return {
-                name: product.title || product.name,
-                image: colorMatchingImage.src,
-                price: price,
-                size: cartItem.size,
-                color: cartItem.color,
-              }
-            }
+      if (colorMatchingImage) {
+        console.log(`[Cart Item] Found color-matching image URL:`, colorMatchingImage.src)
+        return {
+          name: product.title || product.name,
+          image: colorMatchingImage.src,
+          price: price,
+          size: cartItem.size,
+          color: cartItem.color,
+        }
+      }
       
       // Strategy 3: Use intelligent color-to-image mapping with preference for front-facing images
       const colorToImageIndex = (() => {
         const colorNameLower = colorName?.toLowerCase()
+        
+        console.log(`[Cart Item] ===== COLOR MATCHING STRATEGY 3 =====`);
+        console.log(`[Cart Item] Calculating color-to-image index for: "${colorNameLower}"`);
         
         if (!colorNameLower) return 0
         
@@ -276,34 +400,38 @@ export function CartItem({ item, printifyProducts = [] }: CartItemProps) {
       const imageIndex = colorToImageIndex % imagesToUse.length
       const selectedImage = imagesToUse[imageIndex]
       
-      console.log(`[Cart Item] Using intelligent color-to-image mapping: ${colorName} -> index ${colorToImageIndex} -> image ${imageIndex}`)
-      console.log(`[Cart Item] Selected image:`, selectedImage.src)
-      console.log(`[Cart Item] Image type: ${frontImages.length > 0 ? 'front-facing' : 'any available'}`)
+      console.log(`[Cart Item] Using intelligent color-to-image mapping: ${colorName} -> index ${colorToImageIndex} -> image ${imageIndex}`);
+      console.log(`[Cart Item] Selected image:`, selectedImage.src);
+      console.log(`[Cart Item] Image type: ${frontImages.length > 0 ? 'front-facing' : 'any available'}`);
       
-                  return {
-              name: product.title || product.name,
-              image: selectedImage.src,
-              price: price,
-              size: cartItem.size,
-              color: cartItem.color,
-            }
-          }
-          
-          // Strategy 4: Fallback to default image
-          console.log(`[Cart Item] No suitable image found for color ${colorName}, using default image`)
+      return {
+        name: product.title || product.name,
+        image: selectedImage.src,
+        price: price,
+        size: cartItem.size,
+        color: cartItem.color,
+      }
+    }
+    
+    // Strategy 4: Fallback to default image
+    console.log(`[Cart Item] ===== COLOR MATCHING STRATEGY 4 (FALLBACK) =====`);
+    console.log(`[Cart Item] No suitable image found for color ${colorName}, using default image`)
     return {
-            name: product.title || product.name,
+      name: product.title || product.name,
       image: product.images?.[0]?.src || item.image1 || "/placeholder.svg",
-            price: price,
-            size: cartItem.size,
-            color: cartItem.color,
-          }
+      price: price,
+      size: cartItem.size,
+      color: cartItem.color,
+    }
   }
 
   console.log(`[Cart Item] About to call getPrintifyProductInfo with:`, latestItem);
   console.log(`[Cart Item] latestItem.variantImage:`, latestItem.variantImage);
   const info = getPrintifyProductInfo(latestItem)
+  console.log(`[Cart Item] ===== FINAL RESULT =====`);
   console.log(`[Cart Item] getPrintifyProductInfo returned:`, info);
+  console.log(`[Cart Item] Final image to display:`, info.image);
+  console.log(`[Cart Item] ===== END DEBUGGING =====`);
 
   const handleIncrement = () => {
     updateQuantity(latestItem.id, latestItem.quantity + 1)

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { calculateCartTotal } from "@/lib/cart"
 import type { CheckoutState } from "@/types/checkout"
 import type { CartItem } from "@/types/cart"
+import { useState, useEffect } from "react"
 
 interface ReviewStepProps {
   checkoutData: CheckoutState
@@ -16,6 +17,78 @@ interface ReviewStepProps {
 
 export function ReviewStep({ checkoutData, cartItems, onSubmit, onBack }: ReviewStepProps) {
   const { shippingAddress, shippingMethod } = checkoutData
+  const [printifyProducts, setPrintifyProducts] = useState<any[]>([])
+
+  // Fetch Printify products for color matching
+  useEffect(() => {
+    const fetchPrintifyProducts = async () => {
+      try {
+        const res = await fetch("/api/printify-products")
+        if (res.ok) {
+          const data = await res.json()
+          setPrintifyProducts(data)
+        }
+      } catch (e) {
+        console.error("Failed to fetch Printify products for checkout:", e)
+      }
+    }
+    fetchPrintifyProducts()
+  }, [])
+
+  // Function to get the correct image for a cart item (same logic as CartItem)
+  const getItemImage = (item: CartItem) => {
+    // If we have variantImage, use it
+    if (item.variantImage) {
+      return item.variantImage
+    }
+
+    // Otherwise, use color matching logic
+    const printifyProduct = printifyProducts[item.id - 1]
+    if (printifyProduct && item.color && printifyProduct.options) {
+      // Find the color option
+      const colorOption = printifyProduct.options.find((opt: any) => 
+        opt.name && opt.name.toLowerCase().includes('color')
+      )
+      
+      if (colorOption && colorOption.values) {
+        // Find the selected color value
+        const selectedColorValue = colorOption.values.find((val: any) => 
+          val.title && val.title.toLowerCase() === item.color.toLowerCase()
+        )
+        
+        if (selectedColorValue) {
+          // Find variant with this color
+          const matchingVariant = printifyProduct.variants?.find((variant: any) => {
+            if (variant.originalVariant && variant.originalVariant.options) {
+              return variant.originalVariant.options.includes(selectedColorValue.id)
+            }
+            return false
+          })
+          
+          if (matchingVariant) {
+            // Find image for this variant
+            const variantImages = printifyProduct.images?.filter((img: any) => 
+              img.variant_ids.includes(matchingVariant.id)
+            ) || []
+            
+            if (variantImages.length > 0) {
+              // Prefer front-facing images
+              const frontImage = variantImages.find((img: any) => 
+                img.src.includes('front') || 
+                img.src.includes('main') || 
+                !img.src.includes('folded') && !img.src.includes('back')
+              )
+              
+              return frontImage ? frontImage.src : variantImages[0].src
+            }
+          }
+        }
+      }
+    }
+    
+    // Fallback to item.image1 or placeholder
+    return item.image1 || "/placeholder.svg"
+  }
 
   if (!shippingAddress || !shippingMethod) {
     return <div>Missing required information</div>
@@ -82,7 +155,7 @@ export function ReviewStep({ checkoutData, cartItems, onSubmit, onBack }: Review
               <div key={item.id} className="flex items-center">
                 <div className="relative h-20 w-20 rounded-xl overflow-hidden flex-shrink-0">
                   <Image 
-                    src={item.variantImage || item.image1 || "/placeholder.svg"} 
+                    src={getItemImage(item)} 
                     alt={item.name} 
                     fill 
                     className="object-cover" 

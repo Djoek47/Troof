@@ -52,10 +52,18 @@ export function HoodieCard({
   options,
   description,
 }: PrintifyProductCardProps) {
-  const { addItem } = useCart()
+  const { addItem, currentWalletId } = useCart()
   // State for step-by-step selection
-  const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
-  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
+  const [selectedColorId, setSelectedColorId] = useState<string | null>(() => {
+    const stored = localStorage.getItem(`hoodie-${id}-color`)
+    console.log(`[HoodieCard ${id}] Loading stored color from localStorage:`, stored)
+    return stored || null
+  })
+  const [selectedSizeId, setSelectedSizeId] = useState<string | null>(() => {
+    const stored = localStorage.getItem(`hoodie-${id}-size`)
+    console.log(`[HoodieCard ${id}] Loading stored size from localStorage:`, stored)
+    return stored || null
+  })
   const [addedToCart, setAddedToCart] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [colorSelectOpen, setColorSelectOpen] = useState(false);
@@ -77,11 +85,13 @@ export function HoodieCard({
 
   // Get the image for the selected variant, fallback to default
   const displayImage = (() => {
+    console.log(`[HoodieCard ${id}] Calculating displayImage - Wallet: ${!!currentWalletId}, Color: ${selectedColorId}, Size: ${selectedSizeId}`);
+    
     if (selectedColorId) {
       const colorName = colorOption?.values.find(val => String(val.id) === selectedColorId)?.title;
       
       if (colorName) {
-        console.log(`Looking for image for color: ${colorName}`);
+        console.log(`[HoodieCard ${id}] Looking for image for color: ${colorName}`);
         
         // Strategy 1: Use Printify's variant ID system for exact color matching
         const colorNameLower = colorName.toLowerCase();
@@ -91,7 +101,7 @@ export function HoodieCard({
         const selectedColorValue = colorOption?.values.find(val => String(val.id) === selectedColorId);
         
         if (selectedColorValue) {
-          console.log(`Looking for variant with color: ${selectedColorValue.title} (ID: ${selectedColorValue.id})`);
+          console.log(`[HoodieCard ${id}] Looking for variant with color: ${selectedColorValue.title} (ID: ${selectedColorValue.id})`);
           
           // Strategy 1a: Try to find a variant that has this color ID in its options
           const matchingVariant = variants.find(variant => {
@@ -103,7 +113,7 @@ export function HoodieCard({
           });
           
           if (matchingVariant) {
-            console.log(`Found variant ${matchingVariant.id} that matches color ${selectedColorValue.title}`);
+            console.log(`[HoodieCard ${id}] Found variant ${matchingVariant.id} that matches color ${selectedColorValue.title}`);
             
             // Now find the best image for this variant
             const variantImages = images.filter(img => 
@@ -119,11 +129,11 @@ export function HoodieCard({
               );
               
               if (frontImage) {
-                console.log(`Using front-facing variant image:`, frontImage.src);
+                console.log(`[HoodieCard ${id}] Using front-facing variant image:`, frontImage.src);
                 return frontImage.src;
               } else {
                 // Use any variant image if no front-facing one found
-                console.log(`Using variant image:`, variantImages[0].src);
+                console.log(`[HoodieCard ${id}] Using variant image:`, variantImages[0].src);
                 return variantImages[0].src;
               }
             }
@@ -161,7 +171,7 @@ export function HoodieCard({
           });
           
           if (colorMatchingImage) {
-            console.log(`Found color-matching image URL:`, colorMatchingImage.src);
+            console.log(`[HoodieCard ${id}] Found color-matching image URL:`, colorMatchingImage.src);
             return colorMatchingImage.src;
           }
           
@@ -197,20 +207,20 @@ export function HoodieCard({
           const imageIndex = colorToImageIndex % imagesToUse.length;
           const selectedImage = imagesToUse[imageIndex];
           
-          console.log(`Using intelligent color-to-image mapping: ${colorName} -> index ${colorToImageIndex} -> image ${imageIndex}`);
-          console.log(`Selected image:`, selectedImage.src);
-          console.log(`Image type: ${frontImages.length > 0 ? 'front-facing' : 'any available'}`);
+          console.log(`[HoodieCard ${id}] Using intelligent color-to-image mapping: ${colorName} -> index ${colorToImageIndex} -> image ${imageIndex}`);
+          console.log(`[HoodieCard ${id}] Selected image:`, selectedImage.src);
+          console.log(`[HoodieCard ${id}] Image type: ${frontImages.length > 0 ? 'front-facing' : 'any available'}`);
           
           return selectedImage.src;
         }
         
         // Strategy 4: Fallback to default image
-        console.log(`No suitable image found for color ${colorName}, using default image`);
+        console.log(`[HoodieCard ${id}] No suitable image found for color ${colorName}, using default image`);
         return image;
       }
     }
     
-    console.log(`Using default image:`, image);
+    console.log(`[HoodieCard ${id}] Using default image:`, image);
     return image;
   })();
 
@@ -219,48 +229,32 @@ export function HoodieCard({
   const sizeStepActive = !!selectedColorId && !selectedSizeId;
   const canAddToCart = !!selectedColorId && !!selectedSizeId;
 
+  // Persist color selection to localStorage
   const handleColorSelect = (colorId: string) => {
-    setSelectedColorId(colorId);
-    setSelectedSizeId(null); // Reset size when color changes
-    setAddedToCart(false);
-    setColorSelectOpen(false); // Hide color options after selection
-    
-    // Debug: Log color selection for troubleshooting
-    const colorName = colorOption?.values.find(val => String(val.id) === colorId)?.title;
-    console.log(`Color selected: ${colorName} (ID: ${colorId})`);
-    console.log('Available variants:', variants);
-    console.log('Available images:', images);
-    
-    // Log the color options to see what we're working with
-    console.log('Color options:', colorOption?.values);
-    
-    // Log a few variants to see their structure
-    console.log('Sample variants:', variants.slice(0, 3));
-    
-    // Log image analysis for debugging
-    console.log('=== IMAGE ANALYSIS ===');
-    images.forEach((img, index) => {
-      console.log(`Image ${index}:`, {
-        src: img.src,
-        variant_ids: img.variant_ids,
-        position: img.position,
-        is_default: img.is_default
-      });
-    });
-    console.log('=== END IMAGE ANALYSIS ===');
-  };
+    console.log(`[HoodieCard ${id}] handleColorSelect called with colorId: ${colorId}, current wallet: ${!!currentWalletId}`)
+    setSelectedColorId(colorId)
+    localStorage.setItem(`hoodie-${id}-color`, colorId)
+    setSelectedSizeId(null) // Reset size when color changes
+    localStorage.removeItem(`hoodie-${id}-size`) // Clear stored size
+    setAddedToCart(false) // Reset added to cart state
+    setColorSelectOpen(false) // Hide color options after selection
+  }
   const handleSizeSelect = (sizeId: string) => {
-    setSelectedSizeId(sizeId);
-    setAddedToCart(false);
-  };
+    console.log(`[HoodieCard ${id}] handleSizeSelect called with sizeId: ${sizeId}, current wallet: ${!!currentWalletId}`)
+    setSelectedSizeId(sizeId)
+    localStorage.setItem(`hoodie-${id}-size`, sizeId)
+    setAddedToCart(false)
+  }
   const handleAddToCart = () => {
+    console.log(`[HoodieCard ${id}] handleAddToCart - Wallet: ${!!currentWalletId}, Color: ${colorLabel}, Size: ${sizeLabel}, Image: ${displayImage}`);
     addItem({
       id: Number(id),
+      name: name,
+      price: price,
       quantity: 1,
       size: sizeLabel,
       color: colorLabel,
-      variantId: selectedVariant?.id,
-      variantImage: displayImage, // Pass the selected variant image
+      variantImage: displayImage,
     });
     setAddedToCart(true);
   };
@@ -273,6 +267,59 @@ export function HoodieCard({
     }
     return () => clearTimeout(timer);
   }, [addedToCart]);
+
+  // Debug logging for wallet connection
+  useEffect(() => {
+    console.log(`[HoodieCard ${id}] State change - Wallet: ${!!currentWalletId}, Color: ${selectedColorId}, Size: ${selectedSizeId}`);
+  }, [id, currentWalletId, selectedColorId, selectedSizeId]);
+
+  // Debug when wallet connection changes
+  useEffect(() => {
+    console.log(`[HoodieCard ${id}] Wallet connection changed to: ${!!currentWalletId}`);
+  }, [id, currentWalletId]);
+
+  // Sync localStorage with state changes
+  useEffect(() => {
+    if (selectedColorId) {
+      localStorage.setItem(`hoodie-${id}-color`, selectedColorId)
+      console.log(`[HoodieCard ${id}] Saved color to localStorage:`, selectedColorId)
+    } else {
+      localStorage.removeItem(`hoodie-${id}-color`)
+      console.log(`[HoodieCard ${id}] Removed color from localStorage`)
+    }
+  }, [id, selectedColorId])
+
+  useEffect(() => {
+    if (selectedSizeId) {
+      localStorage.setItem(`hoodie-${id}-size`, selectedSizeId)
+      console.log(`[HoodieCard ${id}] Saved size to localStorage:`, selectedSizeId)
+    } else {
+      localStorage.removeItem(`hoodie-${id}-size`)
+      console.log(`[HoodieCard ${id}] Removed size from localStorage`)
+    }
+  }, [id, selectedSizeId])
+
+  // Cleanup localStorage when component unmounts
+  useEffect(() => {
+    return () => {
+      // Only clear if we're not keeping selections for wallet persistence
+      // For now, we'll keep them to maintain user selections across wallet connections
+    }
+  }, [id])
+
+  // Function to clear stored selections (useful for resetting state)
+  const clearStoredSelections = () => {
+    localStorage.removeItem(`hoodie-${id}-color`)
+    localStorage.removeItem(`hoodie-${id}-size`)
+  }
+
+  // Function to reset all selections (useful for debugging)
+  const resetSelections = () => {
+    setSelectedColorId(null)
+    setSelectedSizeId(null)
+    setAddedToCart(false)
+    clearStoredSelections()
+  }
 
   return (
     <div className="bg-white rounded-3xl overflow-hidden group shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">

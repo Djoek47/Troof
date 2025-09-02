@@ -104,8 +104,75 @@ export default function CheckoutPage() {
       }
     }
     
-    // PRIORITY 2: Fallback to Printify data when no variant image is available
+    // PRIORITY 2: Use color matching logic when no variant image is available (same as CartItem)
     const product = printifyProducts[item.id - 1]
+    if (product && item.color && product.options) {
+      console.log(`[Checkout] Using color matching logic for item ${item.id} with color: ${item.color}`);
+      
+      // Find the color option
+      const colorOption = product.options.find((opt: any) => 
+        opt.name && opt.name.toLowerCase().includes('color')
+      )
+      
+      if (colorOption && colorOption.values) {
+        // Find the selected color value
+        const selectedColorValue = colorOption.values.find((val: any) => 
+          val.title && val.title.toLowerCase() === item.color.toLowerCase()
+        )
+        
+        if (selectedColorValue) {
+          console.log(`[Checkout] Found color value: ${selectedColorValue.title} (ID: ${selectedColorValue.id})`);
+          
+          // Find variant with this color
+          const matchingVariant = product.variants?.find((variant: any) => {
+            if (variant.originalVariant && variant.originalVariant.options) {
+              return variant.originalVariant.options.includes(selectedColorValue.id)
+            }
+            return false
+          })
+          
+          if (matchingVariant) {
+            console.log(`[Checkout] Found matching variant: ${matchingVariant.id}`);
+            
+            // Find image for this variant
+            const variantImages = product.images?.filter((img: any) => 
+              img.variant_ids.includes(matchingVariant.id)
+            ) || []
+            
+            if (variantImages.length > 0) {
+              // Prefer front-facing images
+              const frontImage = variantImages.find((img: any) => 
+                img.src.includes('front') || 
+                img.src.includes('main') || 
+                !img.src.includes('folded') && !img.src.includes('back')
+              )
+              
+              const selectedImage = frontImage ? frontImage.src : variantImages[0].src
+              console.log(`[Checkout] Using color-matched image:`, selectedImage);
+              
+              // Use Printify data for name and price
+              const variant = product.variants?.find((v: any) => v.is_enabled) || product.variants?.[0];
+              let price = variant?.price || 0;
+              
+              // Convert price from cents to dollars if needed
+              if (price > 1000) {
+                price = price / 100;
+              }
+              
+              return {
+                name: product.name,
+                price: price,
+                size: item.size,
+                color: item.color,
+                image: selectedImage,
+              };
+            }
+          }
+        }
+      }
+    }
+    
+    // PRIORITY 3: Fallback to Printify data when no variant image or color matching is available
     if (product) {
       console.log(`[Checkout] Found Printify product for ID ${item.id}:`, product);
       
@@ -136,7 +203,7 @@ export default function CheckoutPage() {
       };
     }
     
-    // PRIORITY 3: Final fallback to item data
+    // PRIORITY 4: Final fallback to item data
     console.log(`[Checkout] No Printify product found, using fallback`)
     return { name: item.name, image: item.image1, price: item.price, size: item.size, color: item.color }
   }
@@ -240,12 +307,12 @@ export default function CheckoutPage() {
 
         {/* Right: Shipping/Payment Form (dominant) */}
         <div className="flex-1 flex flex-col gap-8 relative">
-          {/* Proof of Concept Logo - Subtle Background Element */}
-          <div className="absolute top-8 right-8 opacity-5 pointer-events-none z-0">
-            <div className="relative w-24 h-24">
+          {/* Logo - More visible and better positioned */}
+          <div className="absolute top-8 right-8 opacity-20 pointer-events-none z-0">
+            <div className="relative w-32 h-32">
               <Image 
-                src="/Minimal_-_Artboard_2-removebg-preview.png" 
-                alt="Proof of Concept" 
+                src="/FaberlanD78.png" 
+                alt="FaberlanD Logo" 
                 fill 
                 className="object-contain" 
               />

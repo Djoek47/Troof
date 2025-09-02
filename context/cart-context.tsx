@@ -13,7 +13,7 @@ type CartAction =
 
 interface CartContextType {
   state: CartState // This state will represent either the local or server cart, including isOpen
-  addItem: (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string; variantImage?: string }) => Promise<void>
+  addItem: (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string; variantImage?: string; name?: string; price?: number }) => Promise<void>
   removeItem: (id: number, variantId?: number, size?: string, color?: string) => Promise<void>
   updateQuantity: (id: number, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
@@ -111,37 +111,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Function to update wallet cart items with Printify data
   const updateWalletCartWithPrintifyData = async (printifyProducts: any[]) => {
-    if (currentWalletId && printifyProducts.length > 0) {
-      const currentItems = state.items;
-      console.log(`[updateWalletCartWithPrintifyData] Current wallet cart items:`, currentItems);
-      console.log(`[updateWalletCartWithPrintifyData] Printify products available:`, printifyProducts.length);
-      
-      if (currentItems.length > 0) {
-        // Process items with Printify data for display (without updating server)
-        const processedItems = currentItems.map(item => {
-          const printifyProduct = printifyProducts[item.id - 1];
-          if (printifyProduct) {
-            return {
-              ...item,
-              // Use Printify data for display, but keep original server data
-              displayName: printifyProduct.name,
-              displayPrice: printifyProduct.variants?.[0]?.price,
-              // Keep the variantImage for color coordination
-              variantImage: item.variantImage || printifyProduct.variants?.[0]?.image
-            };
-          }
-          return item;
-        });
-        
-        // Update the state with processed items for display
-        setState(prevState => ({
-          ...prevState,
-          items: processedItems
-        }));
-        
-        console.log(`[updateWalletCartWithPrintifyData] Processed ${processedItems.length} items with Printify data`);
-      }
-    }
+    // Simplified: Let the cart item component handle image selection
+    // This ensures wallet carts use the same color-to-image logic as non-wallet carts
+    console.log(`[updateWalletCartWithPrintifyData] Wallet cart has ${state.items.length} items, letting cart item component handle image selection`);
   };
 
   // Effect to listen for Printify data updates and refresh cart items
@@ -194,6 +166,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await response.json();
+      console.log(`[Cart Context] Server cart response data:`, data);
       serverCartDispatch({ type: "UPDATE_CART", payload: data });
     } catch (error) {
       console.error('Error fetching wallet cart:', error);
@@ -221,7 +194,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [fetchCart, currentWalletId]);
 
   // Function to add item (handles local or server cart)
-  const addItem = async (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string; variantImage?: string }) => {
+  const addItem = async (item: { id: number; quantity: number; variantId?: number; size?: string; color?: string; variantImage?: string; name?: string; price?: number }) => {
     if (!currentWalletId) {
       // Add to local storage cart
       const currentItems = getLocalCart();
@@ -293,23 +266,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
       saveLocalCart(newItems);
       setLocalCartItems(newItems);
     } else {
-      // Add to server cart
+      // Add to server cart - simplified to just store essential data
       try {
         const url = new URL(getApiUrl('/cart/add'));
         url.searchParams.set('walletId', currentWalletId);
+
+        // Only send essential data, let cart item component handle image selection
+        const itemToSend = {
+          id: item.id,
+          quantity: item.quantity,
+          size: item.size,
+          color: item.color,
+          // Note: variantImage is not sent to server since it gets lost
+          // The cart item component will handle image selection using the same logic as non-wallet carts
+        };
+
+        console.log(`[Cart Context] Sending simplified item to server:`, itemToSend);
 
         const response = await fetch(url.toString(), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            id: item.id,
-            quantity: item.quantity,
-            size: item.size,
-            color: item.color,
-            variantImage: item.variantImage, // Add variantImage for color coordination
-          }),
+          body: JSON.stringify(itemToSend),
           credentials: 'include'
         });
 
@@ -324,6 +303,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
 
         const data = await response.json();
+        console.log(`[Cart Context] Server cart response data:`, data);
         serverCartDispatch({ type: "UPDATE_CART", payload: data });
       } catch (error) {
         console.error("Failed to add item to wallet cart:", error);
@@ -594,6 +574,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!walletId && previousWalletId) {
        serverCartDispatch({ type: "UPDATE_CART", payload: initialState });
        setLocalCartItems(getLocalCart());
+       
+       // Clear localStorage selections when wallet disconnects
+       console.log('[Cart Context] Wallet disconnected, clearing localStorage selections');
+       for (let i = 1; i <= 9; i++) { // Clear selections for all hoodie cards
+         localStorage.removeItem(`hoodie-${i}-color`);
+         localStorage.removeItem(`hoodie-${i}-size`);
+       }
     }
     // Migration is manual
   };
