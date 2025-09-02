@@ -234,6 +234,27 @@ export default function CheckoutPage() {
           </div>
         </div>
         
+        {/* Maintenance Notice - Below logo */}
+        <div 
+          className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8 text-center cursor-pointer hover:bg-blue-100 transition-colors duration-200"
+          onClick={() => {
+            // This will trigger the modal from the parent layout
+            const event = new CustomEvent('openMaintenanceModal');
+            window.dispatchEvent(event);
+          }}
+        >
+          <div className="flex items-center justify-center mb-3">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+              <span className="text-blue-600 text-lg">ℹ️</span>
+            </div>
+            <h3 className="text-blue-800 font-medium text-lg">Maintenance Update</h3>
+          </div>
+          <p className="text-blue-700 text-sm leading-relaxed max-w-2xl mx-auto">
+            We're currently performing some maintenance to improve your experience. 
+            <span className="text-blue-600 font-medium"> Click here for more details</span>.
+          </p>
+        </div>
+        
         {/* Back to Store button */}
         <div className="mb-8">
           <Button 
