@@ -42,6 +42,7 @@
     "@shopify/storefront-api-client": "^1.0.7",
     "@stripe/react-stripe-js": "^3.7.0",
     "@stripe/stripe-js": "^7.4.0",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

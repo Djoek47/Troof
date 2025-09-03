@@ -351,10 +351,28 @@ export function HoodieCard({
       </div>
       <div className="p-6">
         <Link href={`/product/${id}`}>
-          <h3 className="text-lg font-medium text-gray-900 group-hover:text-yellow-600 transition-colors cursor-pointer mb-2 line-clamp-2">{name}</h3>
+          <h3 className="text-lg font-medium text-gray-900 group-hover:text-yellow-600 transition-colors cursor-pointer mb-2 line-clamp-2 leading-tight">{name}</h3>
         </Link>
         <p className="text-2xl font-light text-gray-900 mb-3">${(selectedVariant?.price || price).toFixed(2)}</p>
-        <p className="text-sm text-gray-600 mb-6 line-clamp-2 leading-relaxed">{description}</p>
+        {description && (
+          <div className="mb-6">
+            <div 
+              className="text-sm text-gray-600 leading-relaxed product-description"
+              dangerouslySetInnerHTML={{ 
+                __html: description.length > 200 
+                  ? `${description.substring(0, 200)}...` 
+                  : description 
+              }}
+            />
+            {description.length > 200 && (
+              <Link href={`/product/${id}`}>
+                <span className="text-xs text-yellow-600 hover:text-yellow-700 font-medium cursor-pointer mt-2 inline-block hover:underline">
+                  Read more →
+                </span>
+              </Link>
+            )}
+          </div>
+        )}
         
         {/* View Details Button */}
         {/* Removed as per edit hint */}

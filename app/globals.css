@@ -2,6 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Line-clamp utilities for text truncation */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Product description styling */
+.product-description {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.product-description p {
+  margin: 0;
+  padding: 0;
+}
+
+.product-description strong,
+.product-description b {
+  font-weight: 600;
+  color: #374151;
+}
+
+.product-description em,
+.product-description i {
+  font-style: italic;
+}
+
+.product-description ul,
+.product-description ol {
+  margin: 0;
+  padding-left: 1rem;
+}
+
 /* Update the root variables to include our brand colors */
 :root {
   --foreground-rgb: 255, 255, 255;
