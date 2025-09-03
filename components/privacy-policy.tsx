@@ -6,7 +6,7 @@ export const PrivacyPolicy = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <Card className="bg-white shadow-lg border-0 rounded-3xl">
-          <CardHeader className="text-center pb-8">
+          <CardHeader className="text-center pb-8 pt-16">
             <CardTitle className="text-4xl font-light text-gray-900 tracking-tight">
               Privacy Policy
             </CardTitle>
@@ -30,7 +30,7 @@ export const PrivacyPolicy = () => {
 
             {/* Policy Sections */}
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">1. Information We Collect</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Information We Collect</h2>
               <p className="text-gray-700 leading-relaxed mb-3">
                 We collect information you provide directly to us, such as when you create an account, place an order, or contact us for support. This may include:
               </p>
@@ -44,7 +44,7 @@ export const PrivacyPolicy = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">2. How We Use Your Information</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">How We Use Your Information</h2>
               <p className="text-gray-700 leading-relaxed mb-3">
                 We use the information we collect to:
               </p>
@@ -59,7 +59,7 @@ export const PrivacyPolicy = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">3. Information Sharing</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Information Sharing</h2>
               <p className="text-gray-700 leading-relaxed">
                 We do not sell, trade, or otherwise transfer your personal information to third parties, except as described in this policy. We may share your information with:
               </p>
@@ -72,21 +72,21 @@ export const PrivacyPolicy = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">4. Data Security</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Data Security</h2>
               <p className="text-gray-700 leading-relaxed">
                 We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. This includes encryption of sensitive data, secure payment processing, and regular security assessments.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">5. Cookies and Tracking</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Cookies and Tracking</h2>
               <p className="text-gray-700 leading-relaxed">
                 We use cookies and similar technologies to enhance your shopping experience, analyze website traffic, and understand where our visitors are coming from. You can control cookie settings through your browser preferences.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">6. Your Rights</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Your Rights</h2>
               <p className="text-gray-700 leading-relaxed mb-3">
                 You have the right to:
               </p>
@@ -100,44 +100,41 @@ export const PrivacyPolicy = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">7. Data Retention</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Data Retention</h2>
               <p className="text-gray-700 leading-relaxed">
                 We retain your personal information for as long as necessary to provide our services, comply with legal obligations, resolve disputes, and enforce our agreements. Order information is typically retained for 7 years for tax and accounting purposes.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">8. Children's Privacy</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Children's Privacy</h2>
               <p className="text-gray-700 leading-relaxed">
                 Our website is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">9. International Transfers</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">International Transfers</h2>
               <p className="text-gray-700 leading-relaxed">
                 Your information may be transferred to and processed in countries other than your own. We ensure that such transfers comply with applicable data protection laws and that your information receives adequate protection.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">10. Changes to This Policy</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Changes to This Policy</h2>
               <p className="text-gray-700 leading-relaxed">
                 We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date. Your continued use of our services after any changes constitutes acceptance of the updated policy.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">11. Contact Us</h2>
+              <h2 className="text-2xl font-light text-gray-900 mb-4 tracking-tight">Contact Us</h2>
               <p className="text-gray-700 leading-relaxed">
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>
               <div className="bg-gray-50 rounded-xl p-4 mt-3">
                 <p className="text-gray-700">
-                  <strong>Email:</strong> privacy@faberstore.com<br />
-                  <strong>Phone:</strong> +1 (555) 123-4567<br />
-                  <strong>Address:</strong> 123 Privacy Street, Data City, DC 12345<br />
-                  <strong>Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM EST
+                  <strong>Email:</strong> privacy@faberstore.com
                 </p>
               </div>
             </section>

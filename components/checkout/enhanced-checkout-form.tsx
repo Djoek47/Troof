@@ -433,11 +433,60 @@ export const EnhancedCheckoutForm = () => {
                   <SelectTrigger className="h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="US">United States</SelectItem>
-                    <SelectItem value="CA">Canada</SelectItem>
-                    <SelectItem value="GB">United Kingdom</SelectItem>
-                    <SelectItem value="AU">Australia</SelectItem>
+                  <SelectContent className="bg-white border-2 border-gray-200 shadow-xl rounded-xl max-h-80">
+                    {/* North America */}
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">North America</div>
+                    <SelectItem value="US" className="hover:bg-yellow-50 focus:bg-yellow-50">United States</SelectItem>
+                    <SelectItem value="CA" className="hover:bg-yellow-50 focus:bg-yellow-50">Canada</SelectItem>
+                    
+                    {/* Europe */}
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">Europe</div>
+                    <SelectItem value="GB" className="hover:bg-yellow-50 focus:bg-yellow-50">United Kingdom</SelectItem>
+                    <SelectItem value="DE" className="hover:bg-yellow-50 focus:bg-yellow-50">Germany</SelectItem>
+                    <SelectItem value="FR" className="hover:bg-yellow-50 focus:bg-yellow-50">France</SelectItem>
+                    <SelectItem value="IT" className="hover:bg-yellow-50 focus:bg-yellow-50">Italy</SelectItem>
+                    <SelectItem value="ES" className="hover:bg-yellow-50 focus:bg-yellow-50">Spain</SelectItem>
+                    <SelectItem value="NL" className="hover:bg-yellow-50 focus:bg-yellow-50">Netherlands</SelectItem>
+                    <SelectItem value="SE" className="hover:bg-yellow-50 focus:bg-yellow-50">Sweden</SelectItem>
+                    <SelectItem value="NO" className="hover:bg-yellow-50 focus:bg-yellow-50">Norway</SelectItem>
+                    <SelectItem value="CH" className="hover:bg-yellow-50 focus:bg-yellow-50">Switzerland</SelectItem>
+                    <SelectItem value="AT" className="hover:bg-yellow-50 focus:bg-yellow-50">Austria</SelectItem>
+                    <SelectItem value="BE" className="hover:bg-yellow-50 focus:bg-yellow-50">Belgium</SelectItem>
+                    <SelectItem value="DK" className="hover:bg-yellow-50 focus:bg-yellow-50">Denmark</SelectItem>
+                    <SelectItem value="FI" className="hover:bg-yellow-50 focus:bg-yellow-50">Finland</SelectItem>
+                    <SelectItem value="IE" className="hover:bg-yellow-50 focus:bg-yellow-50">Ireland</SelectItem>
+                    <SelectItem value="LU" className="hover:bg-yellow-50 focus:bg-yellow-50">Luxembourg</SelectItem>
+                    <SelectItem value="PL" className="hover:bg-yellow-50 focus:bg-yellow-50">Poland</SelectItem>
+                    <SelectItem value="PT" className="hover:bg-yellow-50 focus:bg-yellow-50">Portugal</SelectItem>
+                    
+                                         {/* Asia Pacific */}
+                     <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">Asia Pacific</div>
+                     <SelectItem value="AU" className="hover:bg-yellow-50 focus:bg-yellow-50">Australia</SelectItem>
+                     <SelectItem value="JP" className="hover:bg-yellow-50 focus:bg-yellow-50">Japan</SelectItem>
+                     <SelectItem value="NZ" className="hover:bg-yellow-50 focus:bg-yellow-50">New Zealand</SelectItem>
+                     <SelectItem value="SG" className="hover:bg-yellow-50 focus:bg-yellow-50">Singapore</SelectItem>
+                     <SelectItem value="HK" className="hover:bg-yellow-50 focus:bg-yellow-50">Hong Kong</SelectItem>
+                     <SelectItem value="TW" className="hover:bg-yellow-50 focus:bg-yellow-50">Taiwan</SelectItem>
+                     <SelectItem value="KR" className="hover:bg-yellow-50 focus:bg-yellow-50">South Korea</SelectItem>
+                     
+                     {/* South America */}
+                     <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">South America</div>
+                     <SelectItem value="BR" className="hover:bg-yellow-50 focus:bg-yellow-50">Brazil</SelectItem>
+                     <SelectItem value="AR" className="hover:bg-yellow-50 focus:bg-yellow-50">Argentina</SelectItem>
+                     <SelectItem value="CL" className="hover:bg-yellow-50 focus:bg-yellow-50">Chile</SelectItem>
+                     <SelectItem value="CO" className="hover:bg-yellow-50 focus:bg-yellow-50">Colombia</SelectItem>
+                     <SelectItem value="PE" className="hover:bg-yellow-50 focus:bg-yellow-50">Peru</SelectItem>
+                     <SelectItem value="UY" className="hover:bg-yellow-50 focus:bg-yellow-50">Uruguay</SelectItem>
+                     <SelectItem value="EC" className="hover:bg-yellow-50 focus:bg-yellow-50">Ecuador</SelectItem>
+                     
+                     {/* Other Major Markets */}
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">Other Major Markets</div>
+                      <SelectItem value="IL" className="hover:bg-yellow-50 focus:bg-yellow-50">Israel</SelectItem>
+                      <SelectItem value="AE" className="hover:bg-yellow-50 focus:bg-yellow-50">United Arab Emirates</SelectItem>
+                      <SelectItem value="SA" className="hover:bg-yellow-50 focus:bg-yellow-50">Saudi Arabia</SelectItem>
+                      <SelectItem value="ZA" className="hover:bg-yellow-50 focus:bg-yellow-50">South Africa</SelectItem>
+                      <SelectItem value="RW" className="hover:bg-yellow-50 focus:bg-yellow-50">Rwanda</SelectItem>
+                      <SelectItem value="UG" className="hover:bg-yellow-50 focus:bg-yellow-50">Uganda</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
