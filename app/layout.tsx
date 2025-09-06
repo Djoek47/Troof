@@ -5,6 +5,7 @@ import type React from "react"
 import { createThirdwebClient } from "thirdweb";
 import ClientLayoutContent from "@/components/client-layout-content";
 import { HeadLoader } from "@/components/head-loader";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <ClientLayoutContent>
           {children}
         </ClientLayoutContent>
+        <Analytics />
       </body>
     </html>
   )
