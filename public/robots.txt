@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.faberland.shop/sitemap.xml
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Allow important pages
+Allow: /product/
+Allow: /cart
+Allow: /checkout
+Allow: /crypto-payment
+Allow: /success
+Allow: /privacy
+Allow: /terms
