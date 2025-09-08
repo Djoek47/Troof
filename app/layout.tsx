@@ -6,10 +6,13 @@ import { createThirdwebClient } from "thirdweb";
 import ClientLayoutContent from "@/components/client-layout-content";
 import { HeadLoader } from "@/components/head-loader";
 import { Analytics } from "@vercel/analytics/next";
+import { metadata } from "./metadata";
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const client = createThirdwebClient({ clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID! });
+
+export { metadata };
 
 export default function RootLayout({
   children,
