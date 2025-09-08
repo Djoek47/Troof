@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 import { CartIcon } from "@/components/cart-icon"
 import { CartDrawer } from "@/components/cart/cart-drawer"
 import { ConnectButton } from "thirdweb/react";
-import { client } from "@/app/layout";
+import { client } from "@/lib/thirdweb-client";
 import { customTheme } from "@/components/client-layout-content";
 
 export function CartWrapper({ children }: { children: ReactNode }) {

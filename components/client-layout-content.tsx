@@ -15,7 +15,7 @@ import { usePathname } from "next/navigation";
 
 // Import the client object - adjust path if necessary based on where it's defined relative to this file
 // If client is defined in app/layout.tsx and exported, this import should work: 
-import { client } from "@/app/layout";
+import { client } from "@/lib/thirdweb-client";
 
 // Define a custom theme based on the dark theme
 export const customTheme = darkTheme({

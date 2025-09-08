@@ -9,7 +9,7 @@ import { ArrowLeft, ShoppingCart, Shield } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { ConnectButton } from "thirdweb/react"
-import { client } from "@/app/layout"
+import { client } from "@/lib/thirdweb-client"
 
 export default function CheckoutPage() {
   const { state } = useCart()
