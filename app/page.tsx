@@ -420,6 +420,12 @@ export default function Home() {
                         fill
                         className="object-contain"
                         priority
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        onError={(e) => {
+                          console.log('Image failed to load:', e);
+                          // Fallback to placeholder if image fails
+                          e.currentTarget.src = '/placeholder.svg';
+                        }}
                       />
                     </div>
                   </div>
