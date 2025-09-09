@@ -36,6 +36,29 @@ export function SplashScreen() {
       })
     }, 30)
 
+    // Safari-specific viewport fix for iOS 26
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    
+    if (isSafari && isIOS) {
+      // Force full screen coverage for Safari on iOS
+      const setFullScreen = () => {
+        const vh = window.innerHeight * 0.01
+        document.documentElement.style.setProperty('--vh', `${vh}px`)
+      }
+      
+      setFullScreen()
+      window.addEventListener('resize', setFullScreen)
+      window.addEventListener('orientationchange', setFullScreen)
+      
+      return () => {
+        clearInterval(interval)
+        clearInterval(matrixInterval)
+        window.removeEventListener('resize', setFullScreen)
+        window.removeEventListener('orientationchange', setFullScreen)
+      }
+    }
+
     return () => {
       clearInterval(interval)
       clearInterval(matrixInterval)
@@ -105,6 +128,29 @@ export function ProductSplashScreen() {
         return prev + 1
       })
     }, 30)
+
+    // Safari-specific viewport fix for iOS 26
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    
+    if (isSafari && isIOS) {
+      // Force full screen coverage for Safari on iOS
+      const setFullScreen = () => {
+        const vh = window.innerHeight * 0.01
+        document.documentElement.style.setProperty('--vh', `${vh}px`)
+      }
+      
+      setFullScreen()
+      window.addEventListener('resize', setFullScreen)
+      window.addEventListener('orientationchange', setFullScreen)
+      
+      return () => {
+        clearInterval(interval)
+        clearInterval(matrixInterval)
+        window.removeEventListener('resize', setFullScreen)
+        window.removeEventListener('orientationchange', setFullScreen)
+      }
+    }
 
     return () => {
       clearInterval(interval)
