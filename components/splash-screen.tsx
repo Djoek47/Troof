@@ -45,16 +45,9 @@ export function SplashScreen() {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[60] flex flex-col items-center justify-center bg-white transition-opacity duration-500",
-        "w-screen h-screen min-h-screen",
-        "supports-[height:100dvh]:h-[100dvh] supports-[height:100svh]:h-[100svh]",
+        "ios-splash-fix flex flex-col items-center justify-center bg-white transition-opacity duration-500",
         isComplete ? "opacity-0 pointer-events-none" : "opacity-100",
       )}
-      style={{
-        height: '100vh',
-        height: '100dvh', // Dynamic viewport height for iOS
-        height: '100svh', // Small viewport height for iOS
-      }}
     >
       <div className="relative w-48 h-48 mb-8">
         <Image src="/logo.png" alt="Faberstore" fill className="object-contain" priority />
@@ -122,16 +115,9 @@ export function ProductSplashScreen() {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[60] flex flex-col items-center justify-center bg-white transition-opacity duration-500",
-        "w-screen h-screen min-h-screen",
-        "supports-[height:100dvh]:h-[100dvh] supports-[height:100svh]:h-[100svh]",
+        "ios-splash-fix flex flex-col items-center justify-center bg-white transition-opacity duration-500",
         isComplete ? "opacity-0 pointer-events-none" : "opacity-100",
       )}
-      style={{
-        height: '100vh',
-        height: '100dvh', // Dynamic viewport height for iOS
-        height: '100svh', // Small viewport height for iOS
-      }}
     >
       <div className="relative w-48 h-48 mb-8">
         <Image src="/Minimal_-_Artboard_2-removebg-preview.png" alt="Proof of Concept" fill className="object-contain" priority />

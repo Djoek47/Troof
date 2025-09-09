@@ -421,12 +421,32 @@ export default function Home() {
                         className="object-contain"
                         priority
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        onLoad={() => console.log('Image loaded successfully')}
                         onError={(e) => {
                           console.log('Image failed to load:', e);
-                          // Fallback to placeholder if image fails
-                          e.currentTarget.src = '/placeholder.svg';
+                          // Try alternative image sources
+                          const target = e.currentTarget as HTMLImageElement;
+                          if (target.src.includes('gpt.PNG')) {
+                            target.src = '/placeholder.svg';
+                          }
+                        }}
+                        style={{
+                          objectFit: 'contain',
+                          width: '100%',
+                          height: '100%',
                         }}
                       />
+                      {/* Fallback content for mobile */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl md:hidden">
+                        <div className="text-center p-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <p className="text-sm text-gray-600">Metaverse Connection</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

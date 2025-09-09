@@ -49,6 +49,35 @@ body {
   cursor: none;
 }
 
+/* iOS 26+ splash screen fixes */
+@supports (height: 100dvh) {
+  .ios-splash-fix {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+  }
+}
+
+@supports (height: 100svh) {
+  .ios-splash-fix {
+    height: 100svh !important;
+    min-height: 100svh !important;
+  }
+}
+
+/* Force full viewport coverage for iOS */
+.ios-splash-fix {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+  z-index: 60 !important;
+}
+
 /* Custom inverse cursor - updated with brand color */
 .custom-cursor {
   width: 20px;
