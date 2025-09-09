@@ -49,49 +49,7 @@ body {
   cursor: none;
 }
 
-/* iOS 26+ splash screen fixes - Safari specific */
-@supports (height: 100dvh) {
-  .ios-splash-fix {
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-  }
-}
-
-@supports (height: 100svh) {
-  .ios-splash-fix {
-    height: 100svh !important;
-    min-height: 100svh !important;
-  }
-}
-
-/* Safari-specific full screen coverage for iOS 26 */
-@supports (-webkit-touch-callout: none) {
-  .ios-splash-fix {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: calc(var(--vh, 1vh) * 100) !important;
-    height: 100dvh !important;
-    height: 100svh !important;
-    min-height: 100vh !important;
-    min-height: calc(var(--vh, 1vh) * 100) !important;
-    min-height: 100dvh !important;
-    min-height: 100svh !important;
-    overflow: hidden !important;
-    z-index: 60 !important;
-    /* Safari-specific properties */
-    -webkit-transform: translateZ(0) !important;
-    transform: translateZ(0) !important;
-    -webkit-backface-visibility: hidden !important;
-    backface-visibility: hidden !important;
-  }
-}
-
-/* Force full viewport coverage for all browsers */
+/* iOS 26+ splash screen fixes - Ultra aggressive Safari coverage */
 .ios-splash-fix {
   position: fixed !important;
   top: 0 !important;
@@ -100,9 +58,65 @@ body {
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
+  height: 100dvh !important;
+  height: 100svh !important;
+  height: calc(var(--vh, 1vh) * 100) !important;
   min-height: 100vh !important;
+  min-height: 100dvh !important;
+  min-height: 100svh !important;
+  min-height: calc(var(--vh, 1vh) * 100) !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  max-height: 100svh !important;
   overflow: hidden !important;
-  z-index: 60 !important;
+  z-index: 9999 !important;
+  /* Force hardware acceleration */
+  -webkit-transform: translateZ(0) !important;
+  transform: translateZ(0) !important;
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+  /* iOS Safari specific */
+  -webkit-overflow-scrolling: touch !important;
+  /* Prevent any scrolling or bouncing */
+  overscroll-behavior: none !important;
+  -webkit-overscroll-behavior: none !important;
+}
+
+/* iOS 26 Safari specific - most aggressive approach */
+@supports (-webkit-touch-callout: none) and (display: -webkit-box) {
+  .ios-splash-fix {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    height: 100svh !important;
+    height: calc(var(--vh, 1vh) * 100) !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    min-height: 100svh !important;
+    min-height: calc(var(--vh, 1vh) * 100) !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    max-height: 100svh !important;
+    overflow: hidden !important;
+    z-index: 9999 !important;
+    /* Force full screen on iOS Safari */
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    -webkit-perspective: 1000 !important;
+    perspective: 1000 !important;
+    /* Prevent any UI chrome from showing */
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
 }
 
 /* Custom inverse cursor - updated with brand color */
@@ -188,6 +202,47 @@ video {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+/* Mobile image rendering fixes - especially for iOS Safari */
+img {
+  /* Force hardware acceleration for images */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  /* Prevent image rendering issues on mobile */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Specific fixes for Next.js Image components on mobile */
+.next-image-wrapper img {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  -webkit-transform: translateZ(0) !important;
+  transform: translateZ(0) !important;
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+}
+
+/* iOS Safari specific image fixes */
+@supports (-webkit-touch-callout: none) {
+  img {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-perspective: 1000;
+    perspective: 1000;
+  }
+  
+  .next-image-wrapper img {
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-perspective: 1000 !important;
+    perspective: 1000 !important;
+  }
 }
 
 /* Fade-in animation for step transitions */

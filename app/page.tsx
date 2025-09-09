@@ -421,19 +421,39 @@ export default function Home() {
                         className="object-contain"
                         priority
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        onLoad={() => console.log('Image loaded successfully')}
+                        onLoad={() => {
+                          console.log('Image loaded successfully on mobile');
+                          // Force re-render for mobile Safari
+                          const img = document.querySelector('img[alt="Metastore GPT"]') as HTMLImageElement;
+                          if (img) {
+                            img.style.display = 'block';
+                            img.style.visibility = 'visible';
+                            img.style.opacity = '1';
+                          }
+                        }}
                         onError={(e) => {
-                          console.log('Image failed to load:', e);
+                          console.log('Image failed to load on mobile:', e);
                           // Try alternative image sources
                           const target = e.currentTarget as HTMLImageElement;
                           if (target.src.includes('gpt.PNG')) {
                             target.src = '/placeholder.svg';
+                            target.style.display = 'block';
+                            target.style.visibility = 'visible';
+                            target.style.opacity = '1';
                           }
                         }}
                         style={{
                           objectFit: 'contain',
                           width: '100%',
                           height: '100%',
+                          display: 'block',
+                          visibility: 'visible',
+                          opacity: '1',
+                          // Mobile Safari specific fixes
+                          WebkitTransform: 'translateZ(0)',
+                          transform: 'translateZ(0)',
+                          WebkitBackfaceVisibility: 'hidden',
+                          backfaceVisibility: 'hidden',
                         }}
                       />
                       {/* Fallback content for mobile */}

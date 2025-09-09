@@ -36,26 +36,62 @@ export function SplashScreen() {
       })
     }, 30)
 
-    // Safari-specific viewport fix for iOS 26
+    // Ultra-aggressive iOS 26 Safari detection and viewport fix
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    const isIOS26 = /OS 26_/.test(navigator.userAgent) || /Version\/26/.test(navigator.userAgent)
     
     if (isSafari && isIOS) {
-      // Force full screen coverage for Safari on iOS
+      // Force full screen coverage for Safari on iOS, especially iOS 26
       const setFullScreen = () => {
         const vh = window.innerHeight * 0.01
         document.documentElement.style.setProperty('--vh', `${vh}px`)
+        
+        // Additional iOS 26 specific fixes
+        if (isIOS26) {
+          // Force viewport to exact screen dimensions
+          const viewport = document.querySelector('meta[name="viewport"]')
+          if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover')
+          }
+          
+          // Force body and html to full screen
+          document.documentElement.style.height = '100vh'
+          document.documentElement.style.height = '100dvh'
+          document.documentElement.style.height = '100svh'
+          document.body.style.height = '100vh'
+          document.body.style.height = '100dvh'
+          document.body.style.height = '100svh'
+          document.body.style.overflow = 'hidden'
+          document.body.style.position = 'fixed'
+          document.body.style.top = '0'
+          document.body.style.left = '0'
+          document.body.style.right = '0'
+          document.body.style.bottom = '0'
+        }
       }
       
       setFullScreen()
       window.addEventListener('resize', setFullScreen)
       window.addEventListener('orientationchange', setFullScreen)
+      window.addEventListener('load', setFullScreen)
+      
+      // iOS 26 specific: Force full screen on every interaction
+      if (isIOS26) {
+        document.addEventListener('touchstart', setFullScreen, { passive: true })
+        document.addEventListener('touchend', setFullScreen, { passive: true })
+      }
       
       return () => {
         clearInterval(interval)
         clearInterval(matrixInterval)
         window.removeEventListener('resize', setFullScreen)
         window.removeEventListener('orientationchange', setFullScreen)
+        window.removeEventListener('load', setFullScreen)
+        if (isIOS26) {
+          document.removeEventListener('touchstart', setFullScreen)
+          document.removeEventListener('touchend', setFullScreen)
+        }
       }
     }
 
@@ -129,26 +165,62 @@ export function ProductSplashScreen() {
       })
     }, 30)
 
-    // Safari-specific viewport fix for iOS 26
+    // Ultra-aggressive iOS 26 Safari detection and viewport fix
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    const isIOS26 = /OS 26_/.test(navigator.userAgent) || /Version\/26/.test(navigator.userAgent)
     
     if (isSafari && isIOS) {
-      // Force full screen coverage for Safari on iOS
+      // Force full screen coverage for Safari on iOS, especially iOS 26
       const setFullScreen = () => {
         const vh = window.innerHeight * 0.01
         document.documentElement.style.setProperty('--vh', `${vh}px`)
+        
+        // Additional iOS 26 specific fixes
+        if (isIOS26) {
+          // Force viewport to exact screen dimensions
+          const viewport = document.querySelector('meta[name="viewport"]')
+          if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover')
+          }
+          
+          // Force body and html to full screen
+          document.documentElement.style.height = '100vh'
+          document.documentElement.style.height = '100dvh'
+          document.documentElement.style.height = '100svh'
+          document.body.style.height = '100vh'
+          document.body.style.height = '100dvh'
+          document.body.style.height = '100svh'
+          document.body.style.overflow = 'hidden'
+          document.body.style.position = 'fixed'
+          document.body.style.top = '0'
+          document.body.style.left = '0'
+          document.body.style.right = '0'
+          document.body.style.bottom = '0'
+        }
       }
       
       setFullScreen()
       window.addEventListener('resize', setFullScreen)
       window.addEventListener('orientationchange', setFullScreen)
+      window.addEventListener('load', setFullScreen)
+      
+      // iOS 26 specific: Force full screen on every interaction
+      if (isIOS26) {
+        document.addEventListener('touchstart', setFullScreen, { passive: true })
+        document.addEventListener('touchend', setFullScreen, { passive: true })
+      }
       
       return () => {
         clearInterval(interval)
         clearInterval(matrixInterval)
         window.removeEventListener('resize', setFullScreen)
         window.removeEventListener('orientationchange', setFullScreen)
+        window.removeEventListener('load', setFullScreen)
+        if (isIOS26) {
+          document.removeEventListener('touchstart', setFullScreen)
+          document.removeEventListener('touchend', setFullScreen)
+        }
       }
     }
 
