@@ -51,14 +51,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/test con2.png', sizes: '16x16', type: 'image/png' },
-      { url: '/test con2.png', sizes: '32x32', type: 'image/png' },
-      { url: '/test con2.png', sizes: '48x48', type: 'image/png' },
-      { url: '/test con2.png', sizes: '192x192', type: 'image/png' },
-      { url: '/test con2.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: '/test con2.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
     other: [
       { rel: 'mask-icon', url: '/safari-pinned-tab.svg', color: '#000000' },
@@ -80,8 +79,10 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/test con2.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/test con2.png" />
+        <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className={`${inter.className} bg-white text-gray-900`}>
         <HeadLoader />
